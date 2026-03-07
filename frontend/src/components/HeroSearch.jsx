@@ -13,6 +13,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
   });
 
   const nav = useNavigate();
+  const [openMobileFilter, setOpenMobileFilter] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -25,6 +26,17 @@ export default function HeroSearch({ onSearch, compact = false }) {
   if (compact) {
     return (
       <div className="rounded-3xl border bg-white p-6 shadow-sm">
+        {/* Bottone mobile filtro */}
+        <button
+          onClick={() => setOpenMobileFilter(!openMobileFilter)}
+          className="md:hidden w-full rounded-2xl px-5 py-3 text-sm font-medium"
+          style={{
+            backgroundColor: "#282828",
+            color: "#f0f1eb",
+          }}
+        >
+          {openMobileFilter ? "Chiudi ricerca" : "Cerca un immobile"}
+        </button>
         <p className="text-sm font-semibold mb-4" style={{ color: "#282828" }}>
           Filtra immobili
         </p>
@@ -123,7 +135,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
   return (
     <section
       id="hero"
-      className="relative min-h-[88vh] px-4 pt-24"
+      className="relative min-h-[78vh] px-4 pt-24 pb-16"
       style={{ backgroundColor: "#f0f1eb" }}
     >
       <div
@@ -141,23 +153,27 @@ export default function HeroSearch({ onSearch, compact = false }) {
         }}
       />
 
-      <div className="relative mx-auto grid max-w-6xl gap-10 md:grid-cols-2 md:items-center">
+      <div className="relative mx-auto grid max-w-7xl gap-14 md:grid-cols-2 md:items-center">
+        {/* ================= LEFT HERO ================= */}
         <div>
           <img
             src={logoEsteso}
             alt="Emanuele Biscardi Immobiliare"
-            className="h-20 md:h-24 w-auto max-w-none"
+            className="h-24 md:h-28 w-auto max-w-none"
           />
 
-          <p className="mt-4 text-sm md:text-base" style={{ color: "#99997b" }}>
+          <p
+            className="mt-5 max-w-lg text-base leading-relaxed"
+            style={{ color: "#99997b" }}
+          >
             Immobili selezionati a Caserta e provincia. Consulenza chiara,
             visite rapide e gestione completa della trattativa.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
             <button
               onClick={() => nav("/immobili")}
-              className="rounded-2xl px-5 py-3 text-sm font-medium shadow-sm cursor-pointer"
+              className="rounded-2xl px-6 py-3 text-sm font-medium shadow-sm cursor-pointer"
               style={{
                 backgroundColor: "#282828",
                 color: "#f0f1eb",
@@ -168,7 +184,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
 
             <a
               href="#valuation"
-              className="rounded-2xl px-5 py-3 text-sm font-medium"
+              className="rounded-2xl px-6 py-3 text-sm font-medium"
               style={{
                 backgroundColor: "#44442c",
                 color: "#f0f1eb",
@@ -178,39 +194,41 @@ export default function HeroSearch({ onSearch, compact = false }) {
             </a>
           </div>
 
-          <p className="mt-6 text-xs" style={{ color: "rgba(40,40,40,0.55)" }}>
+          <p className="mt-7 text-sm" style={{ color: "rgba(40,40,40,0.55)" }}>
             📍 Caserta e provincia • ✉️ biscardimmobiliare@libero.it • 📞 +39
             3663432225
           </p>
         </div>
 
-        {/* Filtro originale identico */}
+        {/* ================= FILTRO ================= */}
         <div>
           <div
-            className="rounded-3xl border p-5 shadow-sm md:p-6"
+            className={`rounded-3xl border p-6 shadow-sm md:p-7 ${
+              openMobileFilter ? "block" : "hidden md:block"
+            }`}
             style={{
               backgroundColor: "rgba(255,255,255,0.75)",
               borderColor: "rgba(40,40,40,0.12)",
               backdropFilter: "blur(8px)",
             }}
           >
-            <p className="text-sm font-semibold" style={{ color: "#282828" }}>
+            <p className="text-base font-semibold" style={{ color: "#282828" }}>
               Cerca un immobile
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-              {/* Tutto il tuo form originale rimane uguale */}
-              {/* Riga 1: testo libero */}
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+              {/* parole chiave */}
               <input
-                className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                 style={{ borderColor: "rgba(40,40,40,0.12)" }}
                 placeholder="Parole chiave (es. trilocale, giardino, box...)"
                 value={filters.q}
                 onChange={(e) => setFilters({ ...filters, q: e.target.value })}
               />
-              {/* NUOVO CAMPO CITTÀ */}
+
+              {/* città */}
               <input
-                className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                 style={{ borderColor: "rgba(40,40,40,0.12)" }}
                 placeholder="Città (es. Caserta, Napoli...)"
                 value={filters.city}
@@ -219,30 +237,28 @@ export default function HeroSearch({ onSearch, compact = false }) {
                 }
               />
 
-              {/* Riga 2: contract + type */}
+              {/* contract + type */}
               <div className="grid gap-3 md:grid-cols-2">
                 <select
-                  className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                   style={{ borderColor: "rgba(40,40,40,0.12)" }}
                   value={filters.contract}
                   onChange={(e) =>
                     setFilters({ ...filters, contract: e.target.value })
                   }
                 >
-                  {/* Modifica qui le opzioni contratto */}
                   <option value="vendita">Vendita</option>
                   <option value="affitto">Affitto</option>
                 </select>
 
                 <select
-                  className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                   style={{ borderColor: "rgba(40,40,40,0.12)" }}
                   value={filters.type}
                   onChange={(e) =>
                     setFilters({ ...filters, type: e.target.value })
                   }
                 >
-                  {/* Modifica qui le tipologie */}
                   <option value="">Tipologia (tutte)</option>
                   <option value="appartamento">Appartamento</option>
                   <option value="villa">Villa</option>
@@ -253,11 +269,11 @@ export default function HeroSearch({ onSearch, compact = false }) {
                 </select>
               </div>
 
-              {/* Riga 3: prezzo min/max */}
+              {/* prezzo */}
               <div className="grid gap-3 md:grid-cols-2">
                 <input
                   type="number"
-                  className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                   style={{ borderColor: "rgba(40,40,40,0.12)" }}
                   placeholder="Prezzo min"
                   value={filters.minPrice}
@@ -265,9 +281,10 @@ export default function HeroSearch({ onSearch, compact = false }) {
                     setFilters({ ...filters, minPrice: e.target.value })
                   }
                 />
+
                 <input
                   type="number"
-                  className="w-full rounded-2xl border px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-2xl border px-4 py-3.5 text-sm outline-none"
                   style={{ borderColor: "rgba(40,40,40,0.12)" }}
                   placeholder="Prezzo max"
                   value={filters.maxPrice}
@@ -277,9 +294,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
                 />
               </div>
 
-              {/* Pulsante submit */}
+              {/* submit */}
               <button
-                className="w-full rounded-2xl px-5 py-3 text-sm font-medium hover:opacity-95"
+                className="w-full rounded-2xl px-5 py-3.5 text-sm font-medium hover:opacity-95"
                 style={{
                   backgroundColor: "#282828",
                   color: "#f0f1eb",
@@ -287,15 +304,13 @@ export default function HeroSearch({ onSearch, compact = false }) {
               >
                 Cerca
               </button>
-
-              {/* Nota: puoi aggiungere "reset filtri" qui sotto */}
             </form>
           </div>
 
-          {/* Tip: spazio per “badge” o KPI */}
-          <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs">
+          {/* KPI */}
+          <div className="mt-6 grid grid-cols-3 gap-4 text-center text-sm">
             <div
-              className="rounded-2xl border p-3"
+              className="rounded-2xl border p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",
@@ -306,8 +321,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
               </p>
               <p style={{ color: "#99997b" }}>Trasparenza</p>
             </div>
+
             <div
-              className="rounded-2xl border p-3"
+              className="rounded-2xl border p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",
@@ -318,8 +334,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
               </p>
               <p style={{ color: "#99997b" }}>Organizzate</p>
             </div>
+
             <div
-              className="rounded-2xl border p-3"
+              className="rounded-2xl border p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",

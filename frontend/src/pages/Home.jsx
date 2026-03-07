@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import HeroSearch from "../components/HeroSearch";
 import PropertyCard from "../components/PropertyCard";
-import fotoChiSono from "../assets/images/FotoChiSono.png";
+import fotoChiSono from "../assets/images/sectionChiSono.jpg";
 import api from "../api/client";
+import PropertiesMap from "../components/PropertiesMap";
 
 export default function Home() {
   const [properties, setProperties] = useState([]);
@@ -10,6 +11,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [mapProperties, setMapProperties] = useState([]);
 
   async function handleSearch(filters) {
     try {
@@ -26,7 +28,7 @@ export default function Home() {
 
       const res = await api.get(`/api/properties?${params.toString()}`);
 
-      setSearchResults(res.data.items);
+      setSearchResults(res.data?.items || []);
 
       setTimeout(() => {
         const el = document.getElementById("search-results");
@@ -39,26 +41,40 @@ export default function Home() {
       setSearchLoading(false);
     }
   }
-
   function resetSearch() {
     setHasSearched(false);
     setSearchResults([]);
   }
 
+  async function loadMapProperties() {
+    const res = await api.get("/api/properties?limit=200");
+    setMapProperties(res.data.items || []);
+  }
   useEffect(() => {
     loadLatest();
+    loadMapProperties();
   }, []);
 
   async function loadLatest() {
     try {
       const res = await api.get("/api/properties/latest?limit=3");
-      setProperties(res.data);
+      setProperties(Array.isArray(res.data) ? res.data : res.data.items || []);
+      console.log("PROPERTIES:", res.data);
     } catch (err) {
       console.error("Errore caricamento immobili:", err);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (window.location.hash === "#map") {
+      const el = document.getElementById("map");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, []);
 
   return (
     <main className="scroll-smooth">
@@ -108,21 +124,17 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-[#282828]">
               Ultimi immobili inseriti
             </h2>
-
-            <span className="text-sm font-medium text-[#44442c] opacity-70">
-              {properties.length} immobili
-            </span>
           </div>
 
           {loading ? (
             <p className="text-sm text-gray-500">Caricamento immobili...</p>
-          ) : properties.length === 0 ? (
+          ) : (properties || []).length === 0 ? (
             <p className="text-sm text-gray-500">
               Nessun immobile disponibile.
             </p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {properties.map((p) => (
+              {(properties || []).map((p) => (
                 <PropertyCard key={p._id} property={p} />
               ))}
             </div>
@@ -138,10 +150,7 @@ export default function Home() {
           </h2>
 
           <div className="rounded-3xl bg-white p-8 shadow-sm">
-            <p className="text-sm text-[#99997b]">
-              (Opzionale) Qui integreremo una mappa stile Airbnb/Booking con
-              marker cliccabili.
-            </p>
+            <PropertiesMap properties={mapProperties} />
           </div>
         </div>
       </section>
@@ -153,7 +162,7 @@ export default function Home() {
             <img
               src={fotoChiSono}
               alt="Chi sono"
-              className="w-full object-cover object-center h-72 sm:h-80 md:h-105 lg:h-120"
+              className="w-full object-cover object-[center_40%] h-72 sm:h-80 md:h-105 lg:h-120"
               loading="lazy"
             />
           </div>

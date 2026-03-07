@@ -11,6 +11,7 @@ const propertySchema = new mongoose.Schema(
     city: { type: String, required: true }, // es. "Milano"
     address: { type: String, default: "" }, // opzionale
     price: { type: Number, required: true }, // es. 250000
+    cap: String,
     type: {
       type: String,
       enum: ["appartamento", "villa", "ufficio", "negozio", "terreno", "altro"],
@@ -25,7 +26,10 @@ const propertySchema = new mongoose.Schema(
     bathrooms: { type: Number, default: 0 },
     areaMq: { type: Number, default: 0 },
     description: { type: String, default: "" },
-
+    location: {
+      lat: Number,
+      lng: Number,
+    },
     // immagini: salviamo array di URL relative, es. "/uploads/abc.jpg"
     images: [
       {

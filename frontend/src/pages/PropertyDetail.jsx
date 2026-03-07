@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/client";
 import * as Motion from "framer-motion";
+import PropertyMap from "../components/PropertyMap";
 
 export default function PropertyDetail() {
   const { id } = useParams();
+  const realId = id.split("-").pop();
 
   const BRAND = useMemo(
     () => ({
@@ -26,7 +28,7 @@ export default function PropertyDetail() {
 
   const intervalRef = useRef(null);
 
-  const gallery = item?.images?.map(i => i.url) || [];
+  const gallery = item?.images?.map((i) => i.url) || [];
   const hasImages = gallery.length > 0;
 
   const next = () => {
@@ -54,7 +56,7 @@ export default function PropertyDetail() {
 
     async function load() {
       try {
-        const res = await api.get(`/api/properties/${id}`);
+        const res = await api.get(`/api/properties/${realId}`);
         if (active) {
           setItem(res.data.item);
           setIndex(0);
@@ -172,20 +174,45 @@ export default function PropertyDetail() {
           </div>
 
           {/* THUMBS */}
-          <div className="mt-3 grid grid-cols-5 gap-2">
-            {gallery.map((img, i) => (
-              <img
-                key={img}
-                src={img}
-                onClick={() => {
-                  setDirection(i > index ? 1 : -1);
-                  setIndex(i);
-                }}
-                className={`h-20 w-full cursor-pointer rounded-xl object-cover ${
-                  i === index ? "ring-2 ring-black" : ""
-                }`}
-              />
-            ))}
+          <div className="mt-3 grid grid-cols-6 gap-2">
+            {gallery.slice(0, 6).map((img, i) => {
+              const remaining = gallery.length - 6;
+              const isLast = i === 5 && remaining > 0;
+
+              return (
+                <div
+                  key={img}
+                  className="relative h-20 w-full cursor-pointer overflow-hidden rounded-xl"
+                  onClick={() => {
+                    if (isLast && remaining > 0) {
+                      setLightbox(true);
+                    } else {
+                      setDirection(i > index ? 1 : -1);
+                      setIndex(i);
+                    }
+                  }}
+                >
+                  <img
+                    src={img}
+                    className={`h-full w-full object-cover ${
+                      i === index ? "ring-2 ring-black" : ""
+                    }`}
+                  />
+
+                  {/* overlay +X foto */}
+                  {isLast && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-sm font-semibold">
+                      +{remaining}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {/* MAPPA */}
+          <div className="mt-8">
+            <h2 className="mb-4 text-lg font-semibold">Posizione immobile</h2>
+            <PropertyMap property={item} />
           </div>
         </div>
 
@@ -244,28 +271,70 @@ export default function PropertyDetail() {
       style={{ backgroundColor: BRAND.ivory }}
     >
       <div className="mx-auto max-w-6xl">
-        <Link to="/" className="text-sm text-gray-500 hover:underline">
-          ← Torna alla home
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 rounded-full px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            🏡 Home
+          </Link>
+
+          <Link
+            to="/#map"
+            className="flex items-center gap-2 rounded-full px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            🗺️ Mappa
+          </Link>
+        </div>
 
         {content}
 
         <Motion.AnimatePresence>
           {lightbox && hasImages && (
             <Motion.motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black p-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setLightbox(false)}
             >
+              {/* chiudi */}
+              <button
+                onClick={() => setLightbox(false)}
+                className="absolute right-6 top-6 text-white text-2xl"
+              >
+                ✕
+              </button>
+
+              {/* freccia sinistra */}
+              <button
+                onClick={prev}
+                className="absolute left-6 text-white text-4xl hover:scale-110 transition"
+              >
+                ‹
+              </button>
+
+              {/* immagine */}
               <Motion.motion.img
+                key={gallery[index]}
                 src={gallery[index]}
-                className="max-h-[90vh] w-full max-w-5xl object-contain"
-                initial={{ scale: 0.9 }}
+                className="max-h-[90vh] w-auto max-w-[85vw] object-contain"
+                initial={{ scale: 0.95 }}
                 animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
+                exit={{ scale: 0.95 }}
               />
+
+              {/* freccia destra */}
+              <button
+                onClick={next}
+                className="absolute right-6 text-white text-4xl hover:scale-110 transition"
+              >
+                ›
+              </button>
+
+              {/* contatore */}
+              <div className="absolute bottom-6 text-white text-sm">
+                {index + 1} / {gallery.length}
+              </div>
             </Motion.motion.div>
           )}
         </Motion.AnimatePresence>

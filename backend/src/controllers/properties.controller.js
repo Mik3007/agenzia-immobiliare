@@ -8,6 +8,40 @@ import fs from "fs";
  * - city, type, contract, minPrice, maxPrice, featured
  * - page, limit
  */
+
+async function geocodeAddress(address, city, cap) {
+
+  const queries = [
+    `${address}, ${cap}, ${city}, Italia`,
+    `${address}, ${city}, Italia`,
+    `${address}, ${city}`,
+  ];
+
+  for (const q of queries) {
+
+    const query = encodeURIComponent(q);
+
+    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
+
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "real-estate-app",
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.length) {
+      return {
+        lat: Number(data[0].lat),
+        lng: Number(data[0].lon),
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function listProperties(req, res, next) {
   try {
     const {
@@ -91,8 +125,19 @@ export async function getPropertyById(req, res, next) {
 
 export async function createProperty(req, res, next) {
   try {
-    // Qui decidi cosa accettare dal frontend (per ora prendiamo tutto il body)
-    const created = await Property.create(req.body);
+    const { address, city, cap } = req.body;
+
+    let location = null;
+
+    if (address && city && cap) {
+      location = await geocodeAddress(address, city, cap);
+    }
+
+    const created = await Property.create({
+      ...req.body,
+      location,
+    });
+
     res.status(201).json({ item: created });
   } catch (err) {
     next(err);
@@ -101,12 +146,25 @@ export async function createProperty(req, res, next) {
 
 export async function updateProperty(req, res, next) {
   try {
-    const updated = await Property.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const { address, city, cap } = req.body;
+
+    let location = null;
+
+    if (address && city && cap) {
+      location = await geocodeAddress(address, city, cap);
+    }
+
+    const updated = await Property.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, location },
+      { new: true },
+    );
+
     if (!updated)
       return res.status(404).json({ message: "Immobile non trovato" });
+
     res.json({ item: updated });
+
   } catch (err) {
     next(err);
   }

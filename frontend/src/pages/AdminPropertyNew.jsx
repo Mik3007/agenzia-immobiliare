@@ -7,6 +7,7 @@ const empty = {
   title: "",
   city: "",
   address: "",
+  cap: "",
   price: "",
   contract: "vendita",
   type: "appartamento",
@@ -160,10 +161,11 @@ export default function AdminPropertyNew() {
           </label>
           <input
             type="number"
+            step="1"
             className="w-full rounded-xl border px-3 py-2 text-sm"
             placeholder="Es. 245000"
             value={form.price}
-            onChange={setNum("price")}
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
             required
           />
         </div>
@@ -171,7 +173,7 @@ export default function AdminPropertyNew() {
         {/* Indirizzo */}
         <div className="md:col-span-2">
           <label className="mb-1 block text-xs font-medium text-gray-600">
-            Indirizzo (opzionale)
+            Indirizzo
           </label>
           <input
             className="w-full rounded-xl border px-3 py-2 text-sm"
@@ -180,7 +182,19 @@ export default function AdminPropertyNew() {
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
         </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-600">
+            CAP *
+          </label>
 
+          <input
+            className="w-full rounded-xl border px-3 py-2 text-sm"
+            placeholder="Es. 81100"
+            value={form.cap}
+            required
+            onChange={(e) => setForm({ ...form, cap: e.target.value })}
+          />
+        </div>
         {/* Contratto */}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">

@@ -1,6 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
 export default function PropertyCard({
   property,
   isAdmin = false,
@@ -24,7 +31,8 @@ export default function PropertyCard({
   };
 
   function goToDetail() {
-    navigate(`/immobile/${property._id}`);
+    const slug = slugify(`${property.title} ${property.city}`);
+    navigate(`/immobile/${slug}-${property._id}`);
   }
 
   return (
@@ -86,7 +94,7 @@ export default function PropertyCard({
           <span>•</span>
 
           <span>{property.contract === "vendita" ? "Vendita" : "Affitto"}</span>
-                    <span
+          <span
             className="inline-block rounded-xl px-3 py-2 text-base font-semibold"
             style={{
               backgroundColor: "rgba(240,241,235,0.12)",
@@ -103,7 +111,6 @@ export default function PropertyCard({
           transition={{ duration: 0.28 }}
           className="mt-4 opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
-
           <div className="mt-5">
             {!isAdmin ? (
               <Motion.button

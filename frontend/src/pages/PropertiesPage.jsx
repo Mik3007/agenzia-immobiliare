@@ -7,59 +7,44 @@ import { useNavigate } from "react-router-dom";
 export default function PropertiesPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [sort] = useState("newest");
+  const [pagination, setPagination] = useState(null);
   const navigate = useNavigate();
 
   async function load(params = {}) {
     setLoading(true);
 
-    const res = await api.get("/api/properties", {
-      params: {
-        ...params,
-        limit: 200,
-      },
-    });
+    try {
+      const res = await api.get("/api/properties", {
+        params: {
+          ...params,
+          page,
+          limit: 12,
+          sort,
+        },
+      });
 
-    // ORDINAMENTO PREZZO CRESCENTE
-    const sorted = res.data.items.sort((a, b) => a.price - b.price);
-
-    setItems(sorted);
-    setLoading(false);
+      setItems(res.data.items || []);
+      setPagination(res.data.pagination || null);
+    } catch (err) {
+      console.error(err);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    let cancelled = false;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort]);
 
-    async function fetchProperties() {
-      try {
-        setLoading(true);
-
-        const res = await api.get("/api/properties", {
-          params: { limit: 200 },
-        });
-
-        if (cancelled) return;
-
-        const sorted = (res.data.items || [])
-          .slice()
-          .sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0));
-
-        setItems(sorted);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) setItems([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchProperties();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
   return (
-    <section className="py-10">
+    <section className="py-10 ">
       <div className="mx-auto max-w-6xl px-4">
         {/* TITOLO PAGINA */}
         <div className="mb-6">
@@ -73,16 +58,24 @@ export default function PropertiesPage() {
 
         {/* FILTRO COMPATTO */}
         <div className="mb-8 rounded-2xl border bg-white p-6 shadow-sm">
-          <HeroSearch compact onSearch={load} />
+          <HeroSearch
+            compact
+            onSearch={(params) => {
+              setPage(1);
+              load(params);
+            }}
+          />
         </div>
 
         {/* HEADER RISULTATI */}
-        <div className="flex justify-between items-center">
-          <p className="text-sm font-medium">{items.length} immobili trovati</p>
+        <div className="flex justify-between items-center my-10">
+          <p className="text-sm font-medium">
+            {pagination?.total || items.length} immobili trovati
+          </p>
 
           <button
             onClick={() => navigate("/")}
-            className="text-sm underline hover:opacity-70"
+            className="text-sm underline hover:opacity-70 cursor-pointer"
           >
             ← Torna alla home
           </button>
@@ -98,10 +91,51 @@ export default function PropertiesPage() {
             Nessun immobile trovato.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
               <PropertyCard key={item._id} property={item} />
             ))}
+          </div>
+        )}
+        {/* PAGINAZIONE */}
+        {pagination && pagination.pages > 1 && (
+          <div className="mt-10 flex justify-center items-center gap-2">
+            {/* PREVIOUS */}
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1 border rounded disabled:opacity-40"
+            >
+              ←
+            </button>
+
+            {/* NUMERI PAGINA */}
+            {Array.from({ length: pagination.pages }, (_, i) => {
+              const pageNumber = i + 1;
+
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => setPage(pageNumber)}
+                  className={`px-3 py-1 border rounded ${
+                    pageNumber === page
+                      ? "bg-[#282828] text-white"
+                      : "hover:opacity-70"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+
+            {/* NEXT */}
+            <button
+              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+              disabled={page === pagination.pages}
+              className="px-3 py-1 border rounded disabled:opacity-40"
+            >
+              →
+            </button>
           </div>
         )}
       </div>

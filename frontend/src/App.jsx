@@ -62,7 +62,32 @@ export default function App() {
       </Route>
       <Route path="/admin/properties/new" element={<AdminPropertyNew />} />
       <Route path="/immobile/:id" element={<PropertyDetail />} />
-      <Route path="/immobili" element={<PropertiesPage />} />
+      <Route
+        path="/immobili"
+        element={
+          <div className="min-h-dvh flex flex-col bg-brand-ivory text-brand-ink">
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="fixed left-4 top-4 z-30 rounded-2xl bg-brand-ink/90 px-4 py-3 text-sm font-medium text-brand-ivory shadow-lg hover:bg-brand-ink"
+              aria-label="Apri menu"
+            >
+              ☰ Menu
+            </button>
+
+            <Sidebar
+              isOpen={isMenuOpen}
+              onClose={() => setIsMenuOpen(false)}
+              items={menuItems}
+            />
+
+            <div className="flex-1">
+              <PropertiesPage />
+            </div>
+
+            <Footer />
+          </div>
+        }
+      />
       <Route
         path="/admin/properties/:id/edit"
         element={<AdminPropertyEdit />}

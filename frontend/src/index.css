@@ -1,3 +1,12 @@
 @import "tailwindcss";
 
+.leaflet-popup-close-button {
+  display: none !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
 
