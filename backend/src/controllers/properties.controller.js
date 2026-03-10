@@ -10,7 +10,6 @@ import fs from "fs";
  */
 
 async function geocodeAddress(address, city, cap) {
-
   const queries = [
     `${address}, ${cap}, ${city}, Italia`,
     `${address}, ${city}, Italia`,
@@ -18,28 +17,39 @@ async function geocodeAddress(address, city, cap) {
   ];
 
   for (const q of queries) {
+    await delay(1000); // rispetto limite nominatim
 
     const query = encodeURIComponent(q);
 
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "real-estate-app",
-      },
-    });
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "biscardi-immobiliare",
+        },
+      });
 
-    const data = await res.json();
+      if (!res.ok) continue;
 
-    if (data.length) {
-      return {
-        lat: Number(data[0].lat),
-        lng: Number(data[0].lon),
-      };
+      const data = await res.json();
+
+      if (data.length) {
+        return {
+          lat: Number(data[0].lat),
+          lng: Number(data[0].lon),
+        };
+      }
+    } catch (err) {
+      console.error("Geocode error:", err);
     }
   }
 
   return null;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function listProperties(req, res, next) {
@@ -148,23 +158,29 @@ export async function updateProperty(req, res, next) {
   try {
     const { address, city, cap } = req.body;
 
-    let location = null;
+    const existing = await Property.findById(req.params.id);
 
+    if (!existing)
+      return res.status(404).json({ message: "Immobile non trovato" });
+
+    let location = existing.location;
+
+    // aggiorna la posizione solo se abbiamo tutti i dati
     if (address && city && cap) {
-      location = await geocodeAddress(address, city, cap);
+      const geo = await geocodeAddress(address, city, cap);
+      if (geo) location = geo;
     }
 
     const updated = await Property.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, location },
+      {
+        ...req.body,
+        location,
+      },
       { new: true },
     );
 
-    if (!updated)
-      return res.status(404).json({ message: "Immobile non trovato" });
-
     res.json({ item: updated });
-
   } catch (err) {
     next(err);
   }

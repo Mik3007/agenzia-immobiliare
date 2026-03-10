@@ -73,11 +73,19 @@ export default function AdminDashboard() {
           >
             Home
           </button>
+
           <button
             onClick={() => nav("/admin/properties/new")}
             className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
             + Aggiungi immobile
+          </button>
+
+          <button
+            onClick={() => nav("/admin/reviews")}
+            className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+          >
+            Recensioni
           </button>
 
           <button

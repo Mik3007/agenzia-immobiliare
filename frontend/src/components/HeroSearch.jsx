@@ -159,7 +159,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
           <img
             src={logoEsteso}
             alt="Emanuele Biscardi Immobiliare"
-            className="h-24 md:h-28 w-auto max-w-none"
+            className="h-36 md:h-44 w-auto max-w-none"
           />
 
           <p
@@ -184,7 +184,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
 
             <a
               href="#valuation"
-              className="rounded-2xl px-6 py-3 text-sm font-medium"
+              className="rounded-2xl px-6 py-3 text-sm font-medium hover:backdrop-blur-2xl"
               style={{
                 backgroundColor: "#44442c",
                 color: "#f0f1eb",

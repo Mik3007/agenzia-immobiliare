@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
-
+import reviewsRoutes from "./routes/reviews.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import propertiesRoutes from "./routes/properties.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
@@ -24,6 +24,7 @@ app.use(
 
 app.use(express.json({ limit: "2mb" })); // body JSON (per form e payload)
 app.use(morgan("dev")); // log richieste in dev
+app.use("/api/reviews", reviewsRoutes);
 
 /**
  * Static per immagini caricate:

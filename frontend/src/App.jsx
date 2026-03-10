@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 import PropertyDetail from "./pages/PropertyDetail";
 import PropertiesPage from "./pages/PropertiesPage";
+import AdminReviews from "./pages/AdminReviews";
 
 // metti il path dove stanno davvero questi 2 file
 import AdminLogin from "./pages/AdminLogin";
@@ -20,7 +21,7 @@ export default function App() {
     { label: "Home", href: "#hero" },
     { label: "In evidenza", href: "#featured" },
     { label: "Mappa", href: "#map" },
-    { label: "Chi siamo", href: "#about" },
+    { label: "Chi sono", href: "#about" },
     { label: "Recensioni", href: "#reviews" },
     { label: "Valutazione casa", href: "#valuation" },
   ];
@@ -59,6 +60,7 @@ export default function App() {
       <Route path="/admin" element={<AdminLogin />} />
       <Route element={<RequireAuth />}>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/reviews" element={<AdminReviews />} />
       </Route>
       <Route path="/admin/properties/new" element={<AdminPropertyNew />} />
       <Route path="/immobile/:id" element={<PropertyDetail />} />

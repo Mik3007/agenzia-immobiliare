@@ -36,7 +36,7 @@ export default function PropertiesMap({ properties = [] }) {
       center={center}
       zoom={12}
       style={{ height: "450px", width: "100%" }}
-      className="rounded-2xl"
+      className="rounded-2xl shadow-lg"
     >
       <TileLayer
         attribution="&copy; OpenStreetMap"
@@ -60,7 +60,7 @@ export default function PropertiesMap({ properties = [] }) {
                 const marker = e.target;
                 closeTimer.current = setTimeout(() => {
                   marker.closePopup();
-                }, 700); 
+                }, 1000); 
               },
             }}
           >

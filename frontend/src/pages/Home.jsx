@@ -4,6 +4,7 @@ import PropertyCard from "../components/PropertyCard";
 import fotoChiSono from "../assets/images/sectionChiSono.jpg";
 import api from "../api/client";
 import PropertiesMap from "../components/PropertiesMap";
+import AddReviewModal from "../components/AddReviewModal";
 
 export default function Home() {
   const [properties, setProperties] = useState([]);
@@ -12,6 +13,8 @@ export default function Home() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [mapProperties, setMapProperties] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   async function handleSearch(filters) {
     try {
@@ -53,6 +56,7 @@ export default function Home() {
   useEffect(() => {
     loadLatest();
     loadMapProperties();
+    loadReviews();
   }, []);
 
   async function loadLatest() {
@@ -64,6 +68,15 @@ export default function Home() {
       console.error("Errore caricamento immobili:", err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadReviews() {
+    try {
+      const res = await api.get("/api/reviews");
+      setReviews(res.data.items || []);
+    } catch (err) {
+      console.error("Errore caricamento recensioni:", err);
     }
   }
 
@@ -205,24 +218,46 @@ export default function Home() {
       {/* ================= RECENSIONI ================= */}
       <section id="reviews" className="px-4 py-16">
         <div className="mx-auto max-w-6xl">
-          <h2 className="mb-8 text-2xl font-semibold text-[#282828]">
-            Dicono di noi
-          </h2>
+          <div className="mb-8 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-[#282828]">
+              Dicono di noi
+            </h2>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-3xl bg-white p-6 shadow-sm">
-                <p className="text-sm leading-relaxed text-[#99997b]">
-                  Recensione cliente. Inserire testimonianze reali.
-                </p>
-
-                <p className="mt-4 text-sm font-semibold text-[#282828]">
-                  Nome Cliente
-                </p>
-              </div>
-            ))}
+            <button
+              onClick={() => setReviewModalOpen(true)}
+              className="rounded-xl px-4 py-2 text-sm font-medium bg-[#44442c] text-[#f0f1eb]"
+            >
+              Aggiungi recensione
+            </button>
           </div>
+
+          {reviews.length === 0 ? (
+            <p className="text-sm text-[#99997b]">Nessuna recensione ancora.</p>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {reviews.map((r) => (
+                <div key={r._id} className="rounded-3xl bg-white p-6 shadow-sm">
+                  <p className="mb-2 text-sm font-semibold text-[#282828]">
+                    {r.name}
+                  </p>
+                  <p className="text-sm leading-relaxed text-[#99997b]">
+                    "{r.text}"
+                  </p>
+                  <div className="mt-3 text-yellow-500 text-sm">
+                    {"⭐".repeat(r.rating)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* MODAL RECENSIONE */}
+        <AddReviewModal
+          open={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          onSuccess={loadReviews}
+        />
       </section>
 
       {/* ================= CTA VALUTAZIONE ================= */}

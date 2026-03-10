@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
  * - si aspetta header: Authorization: Bearer <token>
  */
 export function requireAuth(req, res, next) {
+  console.log("AUTH HEADER:", req.headers.authorization);
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
