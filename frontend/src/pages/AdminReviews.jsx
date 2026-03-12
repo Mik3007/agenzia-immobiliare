@@ -106,13 +106,13 @@ export default function AdminReviews() {
         Recensioni pubblicate
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-4 bg-[#ecede7] p-20 rounded-3xl">
         {allReviews
           .filter((r) => r.status === "approved")
           .map((r) => (
             <div
               key={r._id}
-              className="border rounded-xl p-5 flex justify-between"
+              className="border rounded-xl p-5 flex justify-between bg-white hover:bg-amber-100"
             >
               <div>
                 <p className="font-semibold">{r.name}</p>
@@ -122,7 +122,7 @@ export default function AdminReviews() {
 
               <button
                 onClick={() => deleteReview(r._id)}
-                className="bg-red-600 text-white px-3 py-1 rounded"
+                className="bg-red-600 text-white px-3 rounded-2xl"
               >
                 Elimina
               </button>

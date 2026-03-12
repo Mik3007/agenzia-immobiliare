@@ -5,16 +5,23 @@ import fotoChiSono from "../assets/images/sectionChiSono.jpg";
 import api from "../api/client";
 import PropertiesMap from "../components/PropertiesMap";
 import AddReviewModal from "../components/AddReviewModal";
+import ValuationModal from "../components/ValuationModal";
+import { useRef } from "react";
+import Loader from "../components/Loader";
 
 export default function Home() {
   const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [mapProperties, setMapProperties] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [valuationModalOpen, setValuationModalOpen] = useState(false);
+  const featuredRef = useRef(null);
+  const searchRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   async function handleSearch(filters) {
     try {
@@ -44,6 +51,7 @@ export default function Home() {
       setSearchLoading(false);
     }
   }
+
   function resetSearch() {
     setHasSearched(false);
     setSearchResults([]);
@@ -53,6 +61,7 @@ export default function Home() {
     const res = await api.get("/api/properties?limit=200");
     setMapProperties(res.data.items || []);
   }
+
   useEffect(() => {
     loadLatest();
     loadMapProperties();
@@ -61,9 +70,8 @@ export default function Home() {
 
   async function loadLatest() {
     try {
-      const res = await api.get("/api/properties/latest?limit=3");
+      const res = await api.get("/api/properties/latest?limit=20");
       setProperties(Array.isArray(res.data) ? res.data : res.data.items || []);
-      console.log("PROPERTIES:", res.data);
     } catch (err) {
       console.error("Errore caricamento immobili:", err);
     } finally {
@@ -74,7 +82,11 @@ export default function Home() {
   async function loadReviews() {
     try {
       const res = await api.get("/api/reviews");
-      setReviews(res.data.items || []);
+
+      const items = res.data.items || [];
+
+      // salviamo TUTTE le recensioni
+      setReviews(items);
     } catch (err) {
       console.error("Errore caricamento recensioni:", err);
     }
@@ -89,6 +101,30 @@ export default function Home() {
     }
   }, []);
 
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString("it-IT", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  function scroll(ref, direction) {
+    if (!ref.current) return;
+
+    ref.current.scrollBy({
+      left: direction === "left" ? -320 : 320,
+      behavior: "smooth",
+    });
+  }
+
+  const reviewsPerPage = 3;
+
+  const start = (page - 1) * reviewsPerPage;
+  const end = start + reviewsPerPage;
+
+  const paginatedReviews = reviews.slice(start, end);
+
   return (
     <main className="scroll-smooth">
       {/* ================= HERO ================= */}
@@ -96,62 +132,132 @@ export default function Home() {
 
       {/* ================= RISULTATI RICERCA ================= */}
       {hasSearched && (
-        <section id="search-results" className="px-4 py-16 bg-[#f9f9f6]">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-8 flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-[#282828]">
-                Risultati ricerca
-              </h2>
+        <section id="search-results" className="py-16 bg-[#f9f9f6]">
+          <div className="mx-auto max-w-6xl px-4 mb-8 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-[#282828]">
+              Risultati ricerca
+            </h2>
 
-              <button
-                onClick={resetSearch}
-                className="text-sm font-medium text-[#44442c] hover:underline"
-              >
-                Reset filtri
-              </button>
-            </div>
+            <button
+              onClick={resetSearch}
+              className="text-sm font-medium text-[#44442c] hover:underline"
+            >
+              Reset filtri
+            </button>
+          </div>
 
-            {searchLoading ? (
-              <p className="text-sm text-gray-500">Caricamento risultati...</p>
-            ) : searchResults.length === 0 ? (
+          {searchLoading ? (
+            <p className="text-center text-sm text-gray-500">
+              Caricamento risultati...
+            </p>
+          ) : searchResults.length === 0 ? (
+            <div className="max-w-6xl mx-auto px-4">
               <div className="rounded-2xl bg-white p-8 shadow-sm text-center">
                 <p className="text-sm text-[#99997b]">
                   Nessun immobile trovato con questi filtri.
                 </p>
               </div>
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            </div>
+          ) : (
+            <div className="relative group">
+              {/* fade sinistra */}
+              <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 bg-linear-to-r from-[#f9f9f6] to-transparent z-10"></div>
+
+              {/* fade destra */}
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-linear-to-l from-[#f9f9f6] to-transparent z-10"></div>
+
+              {/* freccia sinistra */}
+              <button
+                onClick={() => scroll(searchRef, "left")}
+                className="absolute left-6 top-1/2 -translate-y-1/2 z-20
+              opacity-0 group-hover:opacity-100 transition
+              text-5xl text-black"
+              >
+                ‹
+              </button>
+
+              {/* slider */}
+              <div
+                ref={searchRef}
+                className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory px-6"
+              >
                 {searchResults.map((p) => (
-                  <PropertyCard key={p._id} property={p} />
+                  <div
+                    key={p._id}
+                    className="min-w-85 snap-start transition-all duration-300 hover:min-w-95 hover:shadow-xl"
+                  >
+                    <PropertyCard property={p} />
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
+
+              {/* freccia destra */}
+              <button
+                onClick={() => scroll(searchRef, "right")}
+                className="absolute right-6 top-1/2 -translate-y-1/2 z-20
+              opacity-0 group-hover:opacity-100 transition
+              text-5xl text-black"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </section>
       )}
 
       {/* ================= ULTIMI IMMOBILI ================= */}
-      <section id="featured" className="px-4 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-semibold text-[#282828]">
-              Ultimi immobili inseriti
-            </h2>
-          </div>
+      <section id="featured" className="py-16">
+        <div className="px-6 mb-8">
+          <h2 className="text-2xl font-semibold text-[#282828]">
+            Ultimi immobili inseriti
+          </h2>
+        </div>
 
+        <div className="relative group">
+          {/* fade sinistra */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 bg-linear-to-r from-white to-transparent z-10"></div>
+
+          {/* fade destra */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-linear-to-l from-white to-transparent z-10"></div>
+
+          {/* freccia sinistra */}
+          <button
+            onClick={() => scroll(featuredRef, "left")}
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-20
+          opacity-0 group-hover:opacity-100 transition
+          text-5xl text-black"
+          >
+            ‹
+          </button>
+
+          {/* slider */}
           {loading ? (
-            <p className="text-sm text-gray-500">Caricamento immobili...</p>
-          ) : (properties || []).length === 0 ? (
-            <p className="text-sm text-gray-500">
-              Nessun immobile disponibile.
-            </p>
+            <Loader />
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              ref={featuredRef}
+              className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory px-6"
+            >
               {(properties || []).map((p) => (
-                <PropertyCard key={p._id} property={p} />
+                <div
+                  key={p._id}
+                  className="min-w-85 snap-start transition-all duration-300 hover:min-w-95 hover:shadow-xl"
+                >
+                  <PropertyCard property={p} />
+                </div>
               ))}
             </div>
           )}
+
+          {/* freccia destra */}
+          <button
+            onClick={() => scroll(featuredRef, "right")}
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-20
+          opacity-0 group-hover:opacity-100 transition
+          text-5xl text-black"
+          >
+            ›
+          </button>
         </div>
       </section>
 
@@ -217,7 +323,7 @@ export default function Home() {
 
       {/* ================= RECENSIONI ================= */}
       <section id="reviews" className="px-4 py-16">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl bg-[#ecede7] p-20 rounded-4xl">
           <div className="mb-8 flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-[#282828]">
               Dicono di noi
@@ -225,7 +331,7 @@ export default function Home() {
 
             <button
               onClick={() => setReviewModalOpen(true)}
-              className="rounded-xl px-4 py-2 text-sm font-medium bg-[#44442c] text-[#f0f1eb]"
+              className="rounded-xl px-4 py-2 text-sm font-medium bg-[#44442c] text-[#f0f1eb] hover:bg-[#5a5a3a] cursor-pointer"
             >
               Aggiungi recensione
             </button>
@@ -234,22 +340,50 @@ export default function Home() {
           {reviews.length === 0 ? (
             <p className="text-sm text-[#99997b]">Nessuna recensione ancora.</p>
           ) : (
-            <div className="grid gap-6 md:grid-cols-3">
-              {reviews.map((r) => (
-                <div key={r._id} className="rounded-3xl bg-white p-6 shadow-sm">
-                  <p className="mb-2 text-sm font-semibold text-[#282828]">
-                    {r.name}
-                  </p>
-                  <p className="text-sm leading-relaxed text-[#99997b]">
-                    "{r.text}"
-                  </p>
-                  <div className="mt-3 text-yellow-500 text-sm">
-                    {"⭐".repeat(r.rating)}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedReviews.map((r) => (
+                <div
+                  key={r._id}
+                  className="rounded-3xl bg-white p-6 shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <p className="mb-2 text-sm font-semibold text-[#282828]">
+                      {r.name}
+                    </p>
+
+                    <p className="text-sm leading-relaxed text-[#99997b]">
+                      "{r.text}"
+                    </p>
+
+                    <div className="text-yellow-500 text-sm mt-2">
+                      {"⭐".repeat(r.rating)}
+                    </div>
                   </div>
+
+                  <p className="mt-4 text-xs text-gray-400">
+                    {formatDate(r.createdAt)}
+                  </p>
                 </div>
               ))}
             </div>
           )}
+        </div>
+        <div className="flex justify-center gap-4 mt-8">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-4 py-2 rounded-lg bg-[#44442c] text-white disabled:opacity-40"
+          >
+            ←
+          </button>
+
+          <button
+            disabled={end >= reviews.length}
+            onClick={() => setPage(page + 1)}
+            className="px-4 py-2 rounded-lg bg-[#44442c] text-white disabled:opacity-40"
+          >
+            →
+          </button>
         </div>
 
         {/* MODAL RECENSIONE */}
@@ -271,11 +405,18 @@ export default function Home() {
             Richiedi una valutazione gratuita e senza impegno.
           </p>
 
-          <button className="mt-8 rounded-2xl bg-[#f0f1eb] px-6 py-3 text-sm font-medium text-[#282828] hover:opacity-90">
+          <button
+            onClick={() => setValuationModalOpen(true)}
+            className="mt-8 rounded-2xl bg-[#f0f1eb] px-6 py-3 text-sm font-medium text-[#282828] hover:opacity-90 cursor-pointer"
+          >
             Richiedi valutazione
           </button>
         </div>
       </section>
+      <ValuationModal
+        open={valuationModalOpen}
+        onClose={() => setValuationModalOpen(false)}
+      />
     </main>
   );
 }

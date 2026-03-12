@@ -222,7 +222,7 @@ export default function AdminPropertyNew() {
           >
             <option value="appartamento">Appartamento</option>
             <option value="villa">Villa</option>
-            <option value="ufficio">Ufficio</option>
+            <option value="ufficio">Locale commerciale</option>
             <option value="negozio">Negozio</option>
             <option value="terreno">Terreno</option>
             <option value="altro">Altro</option>

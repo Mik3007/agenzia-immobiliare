@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import propertiesRoutes from "./routes/properties.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import { notFound, errorHandler } from "./middleware/error.js";
+import valuationRoutes from "./routes/valuation.routes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/uploads", express.static(path.resolve("src/uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertiesRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/valuation", valuationRoutes);
 
 // Error handling
 app.use(notFound);

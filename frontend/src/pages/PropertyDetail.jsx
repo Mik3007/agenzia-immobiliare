@@ -292,7 +292,7 @@ export default function PropertyDetail() {
         <Motion.AnimatePresence>
           {lightbox && hasImages && (
             <Motion.motion.div
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black p-6"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black p-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
