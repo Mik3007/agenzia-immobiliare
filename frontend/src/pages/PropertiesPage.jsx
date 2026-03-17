@@ -3,6 +3,8 @@ import api from "../api/client";
 import PropertyCard from "../components/PropertyCard";
 import HeroSearch from "../components/HeroSearch";
 import { useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion";
 
 export default function PropertiesPage() {
   const [items, setItems] = useState([]);
@@ -10,19 +12,19 @@ export default function PropertiesPage() {
   const [page, setPage] = useState(1);
   const [sort] = useState("newest");
   const [pagination, setPagination] = useState(null);
+  const [showFilter, setShowFilter] = useState(false);
+
   const navigate = useNavigate();
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const limit = isMobile ? 6 : 12;
 
   async function load(params = {}) {
     setLoading(true);
 
     try {
       const res = await api.get("/api/properties", {
-        params: {
-          ...params,
-          page,
-          limit: 12,
-          sort,
-        },
+        params: { ...params, page, limit, sort },
       });
 
       setItems(res.data.items || []);
@@ -37,27 +39,52 @@ export default function PropertiesPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, sort]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
+
   return (
-    <section className="py-10 ">
+    <motion.section
+      className="pt-20 pb-10 bg-[#f0f1eb]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="mx-auto max-w-6xl px-4">
-        {/* TITOLO PAGINA */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-semibold text-[#282828]">
+        {/* HEADER */}
+        <motion.div
+          className="mb-6 text-center md:text-left"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#282828]">
             Tutti gli immobili
           </h1>
           <p className="mt-1 text-sm text-gray-500">
             Trova la soluzione perfetta per te
           </p>
+        </motion.div>
+
+        {/* FILTRO MOBILE */}
+        <div className="md:hidden mb-6">
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className="w-full rounded-xl bg-[#282828] px-4 py-3 text-sm font-medium text-white"
+          >
+            {showFilter ? "Chiudi ricerca" : "Cerca un immobile"}
+          </button>
         </div>
 
-        {/* FILTRO COMPATTO */}
-        <div className="mb-8 rounded-2xl border bg-white p-6 shadow-sm">
+        {/* FILTRO */}
+        <motion.div
+          className={`mb-8 rounded-2xl border bg-white p-6 shadow-sm ${
+            showFilter ? "block" : "hidden md:block"
+          }`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <HeroSearch
             compact
             onSearch={(params) => {
@@ -65,7 +92,7 @@ export default function PropertiesPage() {
               load(params);
             }}
           />
-        </div>
+        </motion.div>
 
         {/* HEADER RISULTATI */}
         <div className="flex justify-between items-center my-10">
@@ -81,7 +108,7 @@ export default function PropertiesPage() {
           </button>
         </div>
 
-        {/* GRID CARD */}
+        {/* GRID */}
         {loading ? (
           <div className="py-16 text-center text-gray-500">
             Caricamento immobili…
@@ -91,54 +118,108 @@ export default function PropertiesPage() {
             Nessun immobile trovato.
           </div>
         ) : (
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3"
+            key={page} // 🔥 reset animazione a ogni pagina
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.08,
+                },
+              },
+            }}
+          >
             {items.map((item) => (
-              <PropertyCard key={item._id} property={item} />
+              <motion.div
+                key={item._id}
+                variants={{
+                  hidden: { opacity: 0, y: 40 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.4 }}
+                whileHover={{
+                  y: -6,
+                  scale: 1.04,
+                }}
+              >
+                <PropertyCard property={item} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
+
         {/* PAGINAZIONE */}
         {pagination && pagination.pages > 1 && (
-          <div className="mt-10 flex justify-center items-center gap-2">
-            {/* PREVIOUS */}
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              ←
-            </button>
+          <div className="mt-12 flex flex-col items-center gap-4">
+            {/* MOBILE */}
+            <div className="flex items-center gap-4 md:hidden">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 rounded-lg border bg-white disabled:opacity-40"
+              >
+                ←
+              </button>
 
-            {/* NUMERI PAGINA */}
-            {Array.from({ length: pagination.pages }, (_, i) => {
-              const pageNumber = i + 1;
+              <span className="text-sm font-medium">
+                Pagina {page} / {pagination.pages}
+              </span>
 
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => setPage(pageNumber)}
-                  className={`px-3 py-1 border rounded ${
-                    pageNumber === page
-                      ? "bg-[#282828] text-white"
-                      : "hover:opacity-70"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.pages, p + 1))
+                }
+                disabled={page === pagination.pages}
+                className="px-4 py-2 rounded-lg border bg-white disabled:opacity-40"
+              >
+                →
+              </button>
+            </div>
 
-            {/* NEXT */}
-            <button
-              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-              disabled={page === pagination.pages}
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              →
-            </button>
+            {/* DESKTOP */}
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1 border rounded disabled:opacity-40"
+              >
+                ←
+              </button>
+
+              {Array.from({ length: pagination.pages }, (_, i) => {
+                const pageNumber = i + 1;
+
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => setPage(pageNumber)}
+                    className={`px-3 py-1 border rounded ${
+                      pageNumber === page
+                        ? "bg-[#282828] text-white"
+                        : "hover:opacity-70"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.pages, p + 1))
+                }
+                disabled={page === pagination.pages}
+                className="px-3 py-1 border rounded disabled:opacity-40"
+              >
+                →
+              </button>
+            </div>
           </div>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }

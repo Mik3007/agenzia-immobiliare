@@ -61,7 +61,7 @@ export default function AdminReviews() {
     <AdminLayout title="Gestione recensioni">
       {/* Pending */}
       {reviews.length === 0 && (
-        <div className="rounded-2xl border bg-white p-10 text-center">
+        <div className="rounded-2xl border bg-white p-6 md:p-10 text-center">
           <p className="text-sm text-gray-500">
             Nessuna nuova recensione da approvare.
           </p>
@@ -74,25 +74,29 @@ export default function AdminReviews() {
           .map((r) => (
             <div
               key={r._id}
-              className="rounded-2xl border bg-white p-6 shadow-sm flex justify-between gap-6"
+              className="rounded-2xl border bg-white p-4 md:p-6 shadow-sm flex flex-col md:flex-row md:justify-between gap-4 md:gap-6"
             >
-              <div>
+              {/* Testo */}
+              <div className="flex-1">
                 <p className="font-semibold text-[#282828]">{r.name}</p>
+
                 <p className="text-yellow-500 mt-1">{"⭐".repeat(r.rating)}</p>
+
                 <p className="text-sm mt-3 text-gray-600">{r.text}</p>
               </div>
 
-              <div className="flex flex-col gap-2">
+              {/* Bottoni */}
+              <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => approve(r._id)}
-                  className="rounded-lg bg-green-600 px-4 py-2 text-xs text-white"
+                  className="rounded-lg bg-green-600 px-4 py-2 text-xs text-white w-full sm:w-auto"
                 >
                   Approva
                 </button>
 
                 <button
                   onClick={() => reject(r._id)}
-                  className="rounded-lg bg-red-600 px-4 py-2 text-xs text-white"
+                  className="rounded-lg bg-red-600 px-4 py-2 text-xs text-white w-full sm:w-auto"
                 >
                   Rifiuta
                 </button>
@@ -106,7 +110,7 @@ export default function AdminReviews() {
         Recensioni pubblicate
       </h2>
 
-      <div className="space-y-4 bg-[#ecede7] p-20 rounded-3xl">
+      <div className="space-y-4 bg-[#ecede7] p-6 md:p-10 lg:p-20 rounded-3xl">
         {allReviews
           .filter((r) => r.status === "approved")
           .map((r) => (
@@ -114,18 +118,24 @@ export default function AdminReviews() {
               key={r._id}
               className="border rounded-xl p-5 flex justify-between bg-white hover:bg-amber-100"
             >
-              <div>
+              {/* Testo */}
+              <div className="flex-1">
                 <p className="font-semibold">{r.name}</p>
+
                 <p className="text-yellow-500">{"⭐".repeat(r.rating)}</p>
+
                 <p className="text-sm text-gray-600 mt-2">{r.text}</p>
               </div>
 
-              <button
-                onClick={() => deleteReview(r._id)}
-                className="bg-red-600 text-white px-3 rounded-2xl"
-              >
-                Elimina
-              </button>
+              {/* Bottone */}
+              <div className="flex md:block">
+                <button
+                  onClick={() => deleteReview(r._id)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-xl text-sm w-full md:w-auto"
+                >
+                  Elimina
+                </button>
+              </div>
             </div>
           ))}
       </div>

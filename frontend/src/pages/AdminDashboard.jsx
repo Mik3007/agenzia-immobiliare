@@ -57,40 +57,42 @@ export default function AdminDashboard() {
   }
 
   return (
+    
     <main className="mx-auto max-w-6xl px-4 py-10">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Dashboard Admin</h1>
           <p className="mt-2 text-sm text-gray-600">
             Gestisci immobili: ricerca, aggiungi, modifica, elimina.
           </p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
           <button
             onClick={() => nav("/")}
-            className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-xl border px-3 py-2 text-xs md:text-sm hover:bg-gray-50"
           >
             Home
           </button>
 
           <button
             onClick={() => nav("/admin/properties/new")}
-            className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-xl bg-gray-900 px-3 py-2 text-xs md:text-sm font-medium text-white hover:opacity-90"
           >
-            + Aggiungi immobile
+            + Aggiungi
           </button>
 
           <button
             onClick={() => nav("/admin/reviews")}
-            className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-xl border px-3 py-2 text-xs md:text-sm hover:bg-gray-50"
           >
             Recensioni
           </button>
 
           <button
             onClick={logout}
-            className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-xl border px-3 py-2 text-xs md:text-sm hover:bg-gray-50"
           >
             Esci
           </button>
@@ -112,7 +114,8 @@ export default function AdminDashboard() {
 
       {/* Table */}
       <section className="mt-6">
-        <div className="overflow-hidden rounded-2xl border bg-white">
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-hidden rounded-2xl border bg-white">
           {/* HEADER */}
           <div className="grid grid-cols-12 gap-2 border-b bg-gray-50 p-3 text-xs font-semibold text-gray-600">
             <div className="col-span-6">Immobile</div>
@@ -122,13 +125,11 @@ export default function AdminDashboard() {
             <div className="col-span-1 text-right">Azioni</div>
           </div>
 
-          {/* ROWS */}
           {filtered.map((p) => (
             <div
               key={p._id}
               className="grid grid-cols-12 items-center gap-2 p-3 text-sm border-t"
             >
-              {/* THUMB + TITOLO + VIA */}
               <div className="col-span-6 flex items-center gap-3 min-w-0">
                 <div className="h-14 w-20 overflow-hidden rounded-lg bg-gray-100 shrink-0">
                   <img
@@ -149,26 +150,18 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* CITTA */}
               <div className="col-span-2 text-gray-600">{p.city}</div>
 
-              {/* PREZZO */}
               <div className="col-span-2">
                 € {Number(p.price || 0).toLocaleString("it-IT")}
               </div>
 
-              {/* FEATURED */}
               <div className="col-span-1">
-                <button
-                  onClick={() => toggleFeatured(p)}
-                  className="text-lg"
-                  title="Metti in evidenza in home"
-                >
+                <button onClick={() => toggleFeatured(p)} className="text-lg">
                   {p.featured ? "✅" : "⬜"}
                 </button>
               </div>
 
-              {/* AZIONI */}
               <div className="col-span-1 flex justify-end gap-2">
                 <button
                   onClick={() => nav(`/admin/properties/${p._id}/edit`)}
@@ -186,12 +179,61 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
+        </div>
 
-          {filtered.length === 0 && (
-            <div className="p-6 text-sm text-gray-600">
-              Nessun immobile trovato.
+        {/* MOBILE CARDS */}
+        <div className="md:hidden space-y-4">
+          {filtered.map((p) => (
+            <div
+              key={p._id}
+              className="rounded-2xl border bg-white p-4 shadow-sm"
+            >
+              <div className="flex gap-3">
+                <div className="h-20 w-28 overflow-hidden rounded-lg bg-gray-100 shrink-0">
+                  <img
+                    src={
+                      p.images?.[0]?.url ||
+                      "https://via.placeholder.com/160x120?text=No+Image"
+                    }
+                    alt={p.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{p.title}</p>
+
+                  <p className="text-xs text-gray-500 mt-1">{p.city}</p>
+
+                  <p className="text-sm font-semibold mt-2">
+                    € {Number(p.price || 0).toLocaleString("it-IT")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-4">
+                <button onClick={() => toggleFeatured(p)} className="text-sm">
+                  {p.featured ? "⭐ In Home" : "☆ Metti in Home"}
+                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => nav(`/admin/properties/${p._id}/edit`)}
+                    className="rounded-lg border px-3 py-1 text-xs"
+                  >
+                    Modifica
+                  </button>
+
+                  <button
+                    onClick={() => remove(p._id)}
+                    className="rounded-lg border px-3 py-1 text-xs"
+                  >
+                    Elimina
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </section>
     </main>

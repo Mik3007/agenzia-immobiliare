@@ -17,9 +17,6 @@ export async function login(req, res, next) {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Credenziali non valide" });
 
-    console.log(process.env.ADMIN_EMAIL);
-console.log(process.env.ADMIN_PASSWORD);
-
     const token = jwt.sign(
       { userId: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,

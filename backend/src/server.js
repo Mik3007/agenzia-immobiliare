@@ -10,8 +10,6 @@ import { connectDB } from "./config/db.js";
 
 const PORT = process.env.PORT || 5000;
 
-console.log("MONGO URI ->", process.env.MONGODB_URI);
-
 await connectDB(process.env.MONGODB_URI);
 
 app.listen(PORT, () => {

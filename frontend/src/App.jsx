@@ -1,128 +1,49 @@
-import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import RequireAuth from "./components/RequireAuth";
-import AdminPropertyNew from "./pages/AdminPropertyNew";
-import AdminPropertyEdit from "./pages/AdminPropertyEdit";
+
+import MainLayout from "./layouts/MainLayout";
+
 import Home from "./pages/Home";
-import Footer from "./components/Footer";
-import Sidebar from "./components/Sidebar";
 import PropertyDetail from "./pages/PropertyDetail";
 import PropertiesPage from "./pages/PropertiesPage";
-import AdminReviews from "./pages/AdminReviews";
 
-
-// metti il path dove stanno davvero questi 2 file
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminPropertyNew from "./pages/AdminPropertyNew";
+import AdminPropertyEdit from "./pages/AdminPropertyEdit";
+import AdminReviews from "./pages/AdminReviews";
+
+import RequireAuth from "./components/RequireAuth";
 
 export default function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const menuItems = [
-    { label: "Home", href: "#hero" },
-    { label: "In evidenza", href: "#featured" },
-    { label: "Mappa", href: "#map" },
-    { label: "Chi sono", href: "#about" },
-    { label: "Recensioni", href: "#reviews" },
-    { label: "Valutazione casa", href: "#valuation" },
-  ];
-
   return (
     <Routes>
-      {/* HOME: identica a prima */}
-      <Route
-        path="/"
-        element={
-          <div className="min-h-dvh flex flex-col bg-brand-ivory text-brand-ink">
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="fixed left-4 top-4 z-30 rounded-2xl bg-brand-ink/90 px-4 py-3 text-sm font-medium text-brand-ivory shadow-lg hover:bg-brand-ink"
-              aria-label="Apri menu"
-            >
-              ☰ Menu
-            </button>
 
-            <Sidebar
-              isOpen={isMenuOpen}
-              onClose={() => setIsMenuOpen(false)}
-              items={menuItems}
-            />
+      {/* SITO */}
+      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
 
-            <div className="flex-1">
-              <Home />
-            </div>
+      <Route path="/immobili" element={
+        <MainLayout>
+          <PropertiesPage />
+        </MainLayout>
+      } />
 
-            <Footer />
-          </div>
-        }
-      />
+      <Route path="/immobile/:id" element={
+        <MainLayout>
+          <PropertyDetail />
+        </MainLayout>
+      } />
 
       {/* ADMIN */}
       <Route path="/admin" element={<AdminLogin />} />
+
       <Route element={<RequireAuth />}>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/reviews" element={<AdminReviews />} />
       </Route>
+
       <Route path="/admin/properties/new" element={<AdminPropertyNew />} />
-      <Route path="/immobile/:id" element={<PropertyDetail />} />
-      <Route
-        path="/immobili"
-        element={
-          <div className="min-h-dvh flex flex-col bg-brand-ivory text-brand-ink">
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="fixed left-4 top-4 z-30 rounded-2xl bg-brand-ink/90 px-4 py-3 text-sm font-medium text-brand-ivory shadow-lg hover:bg-brand-ink"
-              aria-label="Apri menu"
-            >
-              ☰ Menu
-            </button>
+      <Route path="/admin/properties/:id/edit" element={<AdminPropertyEdit />} />
 
-            <Sidebar
-              isOpen={isMenuOpen}
-              onClose={() => setIsMenuOpen(false)}
-              items={menuItems}
-            />
-
-            <div className="flex-1">
-              <PropertiesPage />
-            </div>
-
-            <Footer />
-          </div>
-        }
-      />
-      <Route
-        path="/admin/properties/:id/edit"
-        element={<AdminPropertyEdit />}
-      />
-
-      {/* qualsiasi altra rotta torna alla home */}
-      <Route
-        path="*"
-        element={
-          <div className="min-h-dvh flex flex-col bg-brand-ivory text-brand-ink">
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="fixed left-4 top-4 z-30 rounded-2xl bg-brand-ink/90 px-4 py-3 text-sm font-medium text-brand-ivory shadow-lg hover:bg-brand-ink"
-              aria-label="Apri menu"
-            >
-              ☰ Menu
-            </button>
-
-            <Sidebar
-              isOpen={isMenuOpen}
-              onClose={() => setIsMenuOpen(false)}
-              items={menuItems}
-            />
-
-            <div className="flex-1">
-              <Home />
-            </div>
-
-            <Footer />
-          </div>
-        }
-      />
     </Routes>
   );
 }

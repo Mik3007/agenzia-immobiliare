@@ -159,15 +159,18 @@ export default function HeroSearch({ onSearch, compact = false }) {
           <img
             src={logoEsteso}
             alt="Emanuele Biscardi Immobiliare"
-            className="h-36 md:h-44 w-auto max-w-none"
+            className="h-32 md:h-36 lg:h-44 w-auto max-w-none"
           />
 
           <p
-            className="mt-5 max-w-lg text-base leading-relaxed"
+            className="mt-4 max-w-xs text-sm leading-relaxed md:mt-5 md:max-w-lg md:text-base"
             style={{ color: "#99997b" }}
           >
-            Immobili selezionati a Caserta e provincia. Consulenza chiara,
-            visite rapide e gestione completa della trattativa.
+            Immobili selezionati, consulenza chiara,
+            <br className="md:hidden" />
+            visite rapide e gestione completa
+            <br className="md:hidden" />
+            della trattativa.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -194,16 +197,31 @@ export default function HeroSearch({ onSearch, compact = false }) {
             </a>
           </div>
 
-          <p className="mt-7 text-sm" style={{ color: "rgba(40,40,40,0.55)" }}>
-            📍 Caserta e provincia • ✉️ biscardimmobiliare@libero.it • 📞 +39
-            3663432225
-          </p>
+          <div
+            className="mt-7 text-sm space-y-1 md:space-y-0 lg:space-y-0 lg:flex lg:flex-wrap lg:gap-4"
+            style={{ color: "rgba(40,40,40,0.55)" }}
+          >
+            <p>📍 Caserta e provincia</p>
+            <p>✉️ biscardimmobiliare@libero.it</p>
+            <p>📞 +39 3663432225</p>
+          </div>
         </div>
 
         {/* ================= FILTRO ================= */}
         <div>
+          {/* Bottone apertura filtro mobile */}
+          <button
+            onClick={() => setOpenMobileFilter(!openMobileFilter)}
+            className="md:hidden mb-4 w-full rounded-2xl px-5 py-3 text-sm font-medium shadow-sm"
+            style={{
+              backgroundColor: "#282828",
+              color: "#f0f1eb",
+            }}
+          >
+            {openMobileFilter ? "Chiudi ricerca" : "Cerca un immobile"}
+          </button>
           <div
-            className={`rounded-3xl border p-6 shadow-sm md:p-7 ${
+            className={`rounded-3xl border p-5 md:p-6 lg:p-7 shadow-sm md:max-w-sm lg:max-w-none ${
               openMobileFilter ? "block" : "hidden md:block"
             }`}
             style={{
@@ -308,9 +326,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
           </div>
 
           {/* KPI */}
-          <div className="mt-6 grid grid-cols-3 gap-4 text-center text-sm">
+          <div className="mt-6 grid grid-cols-3 gap-3 text-center text-xs md:text-sm">
             <div
-              className="rounded-2xl border p-4"
+              className="rounded-2xl border p-3 md:p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",
@@ -323,20 +341,20 @@ export default function HeroSearch({ onSearch, compact = false }) {
             </div>
 
             <div
-              className="rounded-2xl border p-4"
+              className="rounded-2xl border p-3 md:p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",
               }}
             >
               <p className="font-semibold" style={{ color: "#282828" }}>
-                +Visite
+                100%
               </p>
-              <p style={{ color: "#99997b" }}>Organizzate</p>
+              <p style={{ color: "#99997b" }}>Visite Mirate</p>
             </div>
 
             <div
-              className="rounded-2xl border p-4"
+              className="rounded-2xl border p-3 md:p-4"
               style={{
                 backgroundColor: "rgba(255,255,255,0.6)",
                 borderColor: "rgba(40,40,40,0.10)",

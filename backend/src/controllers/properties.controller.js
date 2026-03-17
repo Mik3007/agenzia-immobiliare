@@ -188,15 +188,39 @@ export async function updateProperty(req, res, next) {
 
 export async function deleteProperty(req, res, next) {
   try {
-    const deleted = await Property.findByIdAndDelete(req.params.id);
-    if (!deleted)
+    // 1. trova immobile PRIMA
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
       return res.status(404).json({ message: "Immobile non trovato" });
+    }
+
+    // 2. cancella immagini Cloudinary
+    if (property.images?.length) {
+      for (const img of property.images) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
+    }
+
+    // 3. cancella planimetrie
+    if (property.planimetries?.length) {
+      for (const plan of property.planimetries) {
+        if (plan.public_id) {
+          await cloudinary.uploader.destroy(plan.public_id);
+        }
+      }
+    }
+
+    // 4. cancella dal DB
+    await property.deleteOne();
+
     res.json({ ok: true });
   } catch (err) {
     next(err);
   }
 }
-
 export const getLatest = async (req, res, next) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || "6", 10), 20);

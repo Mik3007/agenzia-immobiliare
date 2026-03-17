@@ -2,27 +2,56 @@ import logoEsteso from "../assets/brand/EBi_Logo esteso per sfondo chiaro (trasp
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-gray-600">
-        {/* PERSONALIZZA: qui metti indirizzo, P.IVA, REA, social, ecc. */}
-        <img
-                    src={logoEsteso}
-                    alt="Emanuele Biscardi Immobiliare"
-                    className="h-24 md:h-12 mb-2 w-auto max-w-none"
-                  />
-        <p>Via Ferrara, 48 81100 • Tel. +39 3663432225</p>
-        <div className="flex my-2 gap-1">
-          <p>pec: biscardiemanuele@pec.libero.it </p>
-          <p>• e-mail biscarimmobiliare@libero.it</p>
+    <footer className="border-t bg-white mt-16">
+      <div className="mx-auto max-w-6xl px-4 py-12">
+
+        {/* LOGO */}
+        <div className="flex flex-col items-center text-center md:flex-row md:items-start md:justify-between md:text-left">
+
+          <div className="mb-8 md:mb-0">
+            <img
+              src={logoEsteso}
+              alt="Emanuele Biscardi Immobiliare"
+              className="h-16 md:h-14 w-auto mx-auto md:mx-0"
+            />
+
+            <p className="mt-4 text-sm text-gray-600 max-w-xs">
+              Agenzia immobiliare specializzata nella compravendita di immobili
+              a Caserta e provincia, con consulenza professionale e supporto
+              completo in ogni fase della trattativa.
+            </p>
+          </div>
+
+          {/* CONTATTI */}
+          <div className="space-y-2 text-sm text-gray-600">
+            <p className="font-semibold text-gray-800">
+              Contatti
+            </p>
+
+            <p>📍 Via Ferrara, 48 — 81100 Caserta</p>
+            <p>📞 +39 3663432225</p>
+            <p>✉️ biscardimmobiliare@libero.it</p>
+            <p>📨 biscardiemanuele@pec.libero.it</p>
+          </div>
+
+          {/* DATI LEGALI */}
+          <div className="space-y-2 text-sm text-gray-600 mt-8 md:mt-0">
+            <p className="font-semibold text-gray-800">
+              Informazioni
+            </p>
+
+            <p>P.IVA 04503690614</p>
+            <p>Cod. Fisc. BSCMNL88M24E791W</p>
+            <p>REA CE 366207</p>
+          </div>
+
         </div>
-        <div className="flex gap-1">
-          <p>P.IVA 04503690614</p>
-          <p>• Cod.Fisc. BSCMNL88M24E791W</p>
-          <p>• REA CE 366207</p>
+
+        {/* LINEA */}
+        <div className="border-t mt-10 pt-6 text-center text-xs text-gray-400">
+          © {new Date().getFullYear()} Emanuele Biscardi Immobiliare — Tutti i diritti riservati
         </div>
-        <p className="mt-4 text-xs text-gray-400">
-          © {new Date().getFullYear()} - Tutti i diritti riservati
-        </p>
+
       </div>
     </footer>
   );

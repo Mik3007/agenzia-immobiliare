@@ -1,14 +1,53 @@
-import ContactMessage from "../models/ContactMessage.js";
+import { Resend } from "resend";
 
-export async function createMessage(req, res, next) {
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function createMessage(req, res) {
   try {
-    const created = await ContactMessage.create(req.body);
+    const {
+      name,
+      email,
+      phone,
+      message,
+      propertyTitle,
+      propertyCity,
+      propertyPrice,
+      propertyUrl,
+    } = req.body;
 
-    // Qui puoi integrare Nodemailer / Sendgrid ecc. per inviare email all'agenzia.
-    // Per ora salviamo a DB (più semplice e affidabile come prima versione).
+    await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: process.env.ADMIN_EMAIL,
+      subject: "Richiesta informazioni immobile",
+      html: `
+        <h2>Nuova richiesta informazioni</h2>
 
-    res.status(201).json({ ok: true, id: created._id });
+        <h3>Dati cliente</h3>
+        <p><b>Nome:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Telefono:</b> ${phone || "-"}</p>
+
+        <h3>Messaggio</h3>
+        <p>${message}</p>
+
+        <h3>Immobile</h3>
+        <p><b>Titolo:</b> ${propertyTitle}</p>
+        <p><b>Città:</b> ${propertyCity}</p>
+        <p><b>Prezzo:</b> € ${propertyPrice}</p>
+
+        <p>
+          <b>Link immobile:</b><br/>
+          <a href="${propertyUrl}">
+            ${propertyUrl}
+          </a>
+        </p>
+      `,
+    });
+
+    res.json({ success: true });
+
   } catch (err) {
-    next(err);
+    console.error("Errore invio richiesta info:", err);
+    res.status(500).json({ message: "Errore invio richiesta" });
   }
 }

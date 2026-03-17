@@ -16,6 +16,7 @@ const empty = {
   areaMq: "",
   description: "",
   images: [],
+  planimetries: [],
   featured: false,
 };
 
@@ -67,6 +68,30 @@ export default function AdminPropertyNew() {
 
       // ✅ RIMUOVO le preview appena caricate
       setPreviews((prev) => prev.filter((p) => !fileArray.includes(p.file)));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function onUploadPlanimetries(files) {
+    if (!files?.length) return;
+
+    const fileArray = Array.from(files);
+
+    setUploading(true);
+
+    try {
+      const fd = new FormData();
+      fileArray.forEach((f) => fd.append("images", f));
+
+      const res = await api.post("/api/properties/upload/images", fd);
+
+      const uploaded = res.data.images || [];
+
+      setForm((prev) => ({
+        ...prev,
+        planimetries: [...(prev.planimetries || []), ...uploaded],
+      }));
     } finally {
       setUploading(false);
     }
@@ -295,6 +320,56 @@ export default function AdminPropertyNew() {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
+        </div>
+
+        {/* PLANIMETRIE */}
+        <div className="md:col-span-2 mt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Planimetrie</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Carica una o più planimetrie (es. piano terra, primo piano)
+              </p>
+            </div>
+
+            <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              {uploading ? "Caricamento…" : "Carica planimetrie"}
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                accept="image/*"
+                onChange={(e) => onUploadPlanimetries(e.target.files)}
+              />
+            </label>
+          </div>
+
+          {/* LISTA */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(form.planimetries || []).map((img) => (
+              <div key={img.public_id} className="relative">
+                <img
+                  src={img.url}
+                  className="h-20 w-28 rounded-xl object-cover"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      planimetries: prev.planimetries.filter(
+                        (x) => x.public_id !== img.public_id,
+                      ),
+                    }))
+                  }
+                  className="absolute right-1 top-1 rounded-lg bg-white/90 px-2 py-1 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Immagini */}
