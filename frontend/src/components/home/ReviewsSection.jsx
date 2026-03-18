@@ -51,7 +51,7 @@ export default function ReviewsSection({
           
           {/* Titolo */}
           <h2 className="text-2xl font-semibold text-[#282828] text-center md:text-left">
-            Dicono di noi
+            Racconta la tua esperienza
           </h2>
 
           {/* Bottone apertura modal recensione */}
