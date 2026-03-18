@@ -32,7 +32,20 @@ const app = express();
  */
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // permette richieste server-side / postman
+      if (!origin) return callback(null, true);
+
+      const allowed = process.env.CLIENT_URL?.replace(/\/$/, "");
+
+      const requestOrigin = origin.replace(/\/$/, "");
+
+      if (requestOrigin === allowed) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS non autorizzato: " + origin));
+    },
     credentials: true,
   })
 );
