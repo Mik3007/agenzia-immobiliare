@@ -24,40 +24,52 @@ export async function login(req, res) {
     const { email, password } = req.body;
 
     /**
-     * Validazione base input
+     * =========================
+     * VALIDAZIONE INPUT
+     * =========================
      */
     if (!email || !password) {
-      res.status(400);
-      throw new Error("Email e password richieste");
+      return res.status(400).json({
+        message: "Email e password richieste",
+      });
     }
 
     /**
-     * Ricerca utente per email
+     * =========================
+     * RICERCA UTENTE
+     * =========================
      */
     const user = await User.findOne({ email });
 
     /**
-     * Se utente non esiste → errore generico (sicurezza)
+     * Se utente NON esiste
+     * → errore generico (sicurezza)
      */
     if (!user) {
-      res.status(401);
-      throw new Error("Credenziali non valide");
+      return res.status(401).json({
+        message: "Credenziali non valide",
+      });
     }
 
     /**
-     * Confronto password hashata
+     * =========================
+     * VERIFICA PASSWORD
+     * =========================
      */
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
-      res.status(401);
-      throw new Error("Credenziali non valide");
+      return res.status(401).json({
+        message: "Credenziali non valide",
+      });
     }
 
     /**
-     * Creazione token JWT
-     * - contiene info minime necessarie
-     * - durata: 7 giorni
+     * =========================
+     * GENERAZIONE JWT
+     * =========================
+     * - contiene info minime
+     * - durata 7 giorni
      */
     const token = jwt.sign(
       {
@@ -70,13 +82,23 @@ export async function login(req, res) {
     );
 
     /**
-     * Risposta al client
+     * =========================
+     * RISPOSTA SUCCESSO
+     * =========================
      */
-    res.json({ token });
+    return res.json({ token });
+
   } catch (err) {
     /**
-     * Passaggio al middleware globale errorHandler
+     * =========================
+     * ERRORE GENERICO
+     * =========================
+     * NON lanciamo throw → evitiamo crash server (e problemi CORS)
      */
-    throw err;
+    console.error("❌ ERRORE LOGIN:", err);
+
+    return res.status(500).json({
+      message: "Errore server login",
+    });
   }
 }
