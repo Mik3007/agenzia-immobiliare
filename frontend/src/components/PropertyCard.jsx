@@ -1,11 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
+/**
+ * Converte una stringa in uno slug URL-friendly
+ * es: "Villa Caserta Centro" → "villa-caserta-centro"
+ */
 function slugify(text) {
   return text
     .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-");
+    .replace(/[^\w\s-]/g, "") // rimuove caratteri speciali
+    .replace(/\s+/g, "-"); // sostituisce spazi con "-"
 }
 
 export default function PropertyCard({
@@ -16,6 +20,10 @@ export default function PropertyCard({
 }) {
   const navigate = useNavigate();
 
+  /**
+   * Palette colori brand
+   * usata inline per mantenere coerenza visiva
+   */
   const BRAND = {
     ink: "#282828",
     olive: "#44442c",
@@ -23,13 +31,25 @@ export default function PropertyCard({
     ivory: "#f0f1eb",
   };
 
+  /**
+   * Prende la prima immagine come cover
+   * fallback: stringa vuota → mostra placeholder
+   */
   const cover = property?.images?.[0]?.url || "";
 
+  /**
+   * Varianti animazione Framer Motion
+   * usate per far comparire il blocco hover (bottone)
+   */
   const hoverBlock = {
-    rest: { opacity: 0, y: 14 },
-    hover: { opacity: 1, y: 0 },
+    rest: { opacity: 0, y: 14 },   // stato iniziale (nascosto)
+    hover: { opacity: 1, y: 0 },   // stato hover (visibile)
   };
 
+  /**
+   * Navigazione alla pagina dettaglio immobile
+   * costruisce slug SEO + id Mongo
+   */
   function goToDetail() {
     const slug = slugify(`${property.title} ${property.city}`);
     navigate(`/immobile/${slug}-${property._id}`);
@@ -37,14 +57,16 @@ export default function PropertyCard({
 
   return (
     <Motion.div
-      initial="rest"
+      initial="rest"               // stato iniziale animazione
       animate="rest"
-      whileHover="hover"
-      whileTap={{ scale: 0.995 }}
+      whileHover="hover"          // attiva animazioni hover
+      whileTap={{ scale: 0.995 }} // leggero feedback click
       className="group relative w-full aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-      onClick={!isAdmin ? goToDetail : undefined}
+      onClick={!isAdmin ? goToDetail : undefined} // click solo lato pubblico
     >
-      {/* IMMAGINE */}
+      {/* ========================= */}
+      {/* IMMAGINE COVER */}
+      {/* ========================= */}
       <div className="absolute inset-0">
         {cover ? (
           <img
@@ -66,7 +88,10 @@ export default function PropertyCard({
         )}
       </div>
 
-      {/* OVERLAY */}
+      {/* ========================= */}
+      {/* OVERLAY SCURO GRADIENT */}
+      {/* serve per leggibilità testo */}
+      {/* ========================= */}
       <div
         className="absolute inset-0"
         style={{
@@ -75,13 +100,19 @@ export default function PropertyCard({
         }}
       />
 
-      {/* CONTENUTO */}
+      {/* ========================= */}
+      {/* CONTENUTO TESTUALE */}
+      {/* ========================= */}
       <div className="absolute bottom-0 left-0 right-0 p-6">
+        {/* Città */}
         <h3 className="text-2xl font-semibold text-white">{property.city}</h3>
 
+        {/* Indirizzo */}
         <p className="mt-1 text-sm text-white/85">{property.address}</p>
 
+        {/* Info immobile */}
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/80">
+          {/* Metri quadri */}
           {property.areaMq > 0 && (
             <>
               <span>{property.areaMq} m²</span>
@@ -89,11 +120,15 @@ export default function PropertyCard({
             </>
           )}
 
+          {/* Locali */}
           <span>{property.rooms} locali</span>
 
           <span>•</span>
 
+          {/* Tipo contratto */}
           <span>{property.contract === "vendita" ? "Vendita" : "Affitto"}</span>
+
+          {/* Prezzo */}
           <span
             className="inline-block rounded-xl px-3 py-2 text-base font-semibold"
             style={{
@@ -105,7 +140,11 @@ export default function PropertyCard({
           </span>
         </div>
 
-        {/* PREZZO + BOTTONI */}
+        {/* ========================= */}
+        {/* BLOCCO HOVER (BOTTONI) */}
+        {/* visibile sempre su mobile,
+           su desktop solo in hover */}
+        {/* ========================= */}
         <Motion.div
           variants={hoverBlock}
           transition={{ duration: 0.28 }}
@@ -113,11 +152,14 @@ export default function PropertyCard({
         >
           <div className="mt-5">
             {!isAdmin ? (
+              /**
+               * Bottone lato utente (vai a dettaglio)
+               */
               <Motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.stopPropagation(); // evita click sul card
                   goToDetail();
                 }}
                 className="w-full rounded-xl py-3 text-sm font-medium"
@@ -129,6 +171,9 @@ export default function PropertyCard({
                 Dettagli
               </Motion.button>
             ) : (
+              /**
+               * Bottoni lato admin
+               */
               <div className="flex gap-2">
                 <button
                   onClick={(e) => {

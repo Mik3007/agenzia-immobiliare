@@ -13,75 +13,127 @@ import ValuationSection from "../components/home/ValuationSection";
 
 import api from "../api/client";
 
+/**
+ * =========================
+ * HOME PAGE
+ * =========================
+ * Pagina principale del sito.
+ * 
+ * Contiene:
+ * - Hero con ricerca
+ * - Risultati ricerca dinamici
+ * - Slider immobili (featured)
+ * - Mappa immobili
+ * - Sezione "Chi sono"
+ * - Recensioni
+ * - Valutazione immobile
+ */
 export default function Home() {
-  const [properties, setProperties] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [mapProperties, setMapProperties] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [valuationModalOpen, setValuationModalOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  /* =========================
+     STATE GLOBALI
+  ========================= */
 
-  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [properties, setProperties] = useState([]); // immobili latest (slider)
+  const [searchResults, setSearchResults] = useState([]); // risultati ricerca
+  const [searchLoading, setSearchLoading] = useState(false); // loading ricerca
+  const [hasSearched, setHasSearched] = useState(false); // flag ricerca effettuata
+
+  const [mapProperties, setMapProperties] = useState([]); // immobili per mappa
+  const [reviews, setReviews] = useState([]); // tutte le recensioni
+
+  const [reviewModalOpen, setReviewModalOpen] = useState(false); // modal recensione
+  const [valuationModalOpen, setValuationModalOpen] = useState(false); // modal valutazione
+
+  const [page, setPage] = useState(1); // paginazione recensioni
+  const [loading, setLoading] = useState(true); // loading featured
+
+  /* =========================
+     FADE SLIDER
+  ========================= */
+
+  const [showLeftFade, setShowLeftFade] = useState(false); // search slider
   const [showRightFade, setShowRightFade] = useState(true);
-  const [featuredShowLeftFade, setFeaturedShowLeftFade] = useState(false);
+
+  const [featuredShowLeftFade, setFeaturedShowLeftFade] = useState(false); // featured slider
   const [featuredShowRightFade, setFeaturedShowRightFade] = useState(true);
 
-  const featuredRef = useRef(null);
-  const searchRef = useRef(null);
+  /* =========================
+     REF SLIDER
+  ========================= */
 
-  const nav = useNavigate();
+  const featuredRef = useRef(null); // ref slider featured
+  const searchRef = useRef(null);   // ref slider search
 
-  /* ================= SEARCH ================= */
+  const nav = useNavigate(); // navigazione router
 
+  /* =========================
+     SEARCH
+  ========================= */
+
+  /**
+   * Gestisce la ricerca immobili dalla Hero
+   * costruisce query params dinamicamente
+   */
   async function handleSearch(filters) {
     try {
-      setHasSearched(true);
-      setSearchLoading(true);
+      setHasSearched(true);      // attiva sezione risultati
+      setSearchLoading(true);    // attiva loader
 
       const params = new URLSearchParams();
 
+      // costruzione query params
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== "" && value !== null && value !== undefined) {
           params.append(key, value);
         }
       });
 
+      // chiamata API
       const res = await api.get(`/api/properties?${params.toString()}`);
 
+      // set risultati
       setSearchResults(res.data?.items || []);
 
+      // scroll automatico alla sezione risultati
       setTimeout(() => {
         const el = document.getElementById("search-results");
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     } catch (err) {
       console.error("Errore ricerca:", err);
-      setSearchResults([]);
+      setSearchResults([]); // fallback
     } finally {
-      setSearchLoading(false);
+      setSearchLoading(false); // stop loader
     }
   }
 
+  /**
+   * Reset ricerca
+   * nasconde la sezione risultati
+   */
   function resetSearch() {
     setHasSearched(false);
     setSearchResults([]);
   }
 
-  /* ================= LOAD ================= */
+  /* =========================
+     LOAD INIZIALE
+  ========================= */
 
   useEffect(() => {
-    loadLatest();
-    loadMapProperties();
-    loadReviews();
+    loadLatest();        // immobili slider
+    loadMapProperties(); // immobili mappa
+    loadReviews();       // recensioni
   }, []);
 
+  /**
+   * Carica ultimi immobili
+   */
   async function loadLatest() {
     try {
       const res = await api.get("/api/properties/latest?limit=20");
+
+      // supporta sia array diretto che struttura { items }
       setProperties(Array.isArray(res.data) ? res.data : res.data.items || []);
     } catch (err) {
       console.error("Errore immobili:", err);
@@ -90,11 +142,17 @@ export default function Home() {
     }
   }
 
+  /**
+   * Carica immobili per mappa
+   */
   async function loadMapProperties() {
     const res = await api.get("/api/properties?limit=200");
     setMapProperties(res.data.items || []);
   }
 
+  /**
+   * Carica recensioni
+   */
   async function loadReviews() {
     try {
       const res = await api.get("/api/reviews");
@@ -104,8 +162,13 @@ export default function Home() {
     }
   }
 
-  /* ================= SCROLL ================= */
+  /* =========================
+     SCROLL SLIDER
+  ========================= */
 
+  /**
+   * Scroll manuale slider (featured + search)
+   */
   function scroll(ref, direction) {
     if (!ref.current) return;
 
@@ -115,14 +178,22 @@ export default function Home() {
     });
   }
 
-  /* ================= REVIEWS ================= */
+  /* =========================
+     REVIEWS PAGINATION
+  ========================= */
 
+  // numero recensioni per pagina (responsive)
   const reviewsPerPage =
     window.innerWidth < 768 ? 1 : window.innerWidth < 1024 ? 2 : 3;
 
   const end = page * reviewsPerPage;
+
+  // slice recensioni per pagina corrente
   const paginatedReviews = reviews.slice(end - reviewsPerPage, end);
 
+  /**
+   * Format data recensione
+   */
   function formatDate(date) {
     return new Date(date).toLocaleDateString("it-IT", {
       day: "numeric",
@@ -131,13 +202,19 @@ export default function Home() {
     });
   }
 
-  /* ================= RETURN ================= */
+  /* =========================
+     RENDER
+  ========================= */
 
   return (
     <main className="scroll-smooth">
+      
+      {/* HERO + SEARCH */}
       <HeroSearch onSearch={handleSearch} />
 
-      {/* SEARCH */}
+      {/* =========================
+          SEARCH RESULTS
+      ========================= */}
       <SearchResultsSection
         hasSearched={hasSearched}
         searchLoading={searchLoading}
@@ -151,7 +228,9 @@ export default function Home() {
         searchRef={searchRef}
       />
 
-      {/* FEATURED */}
+      {/* =========================
+          FEATURED
+      ========================= */}
       <FeaturedSection
         properties={properties}
         loading={loading}
@@ -164,14 +243,21 @@ export default function Home() {
         nav={nav}
       />
 
-      {/* MAP */}
+      {/* =========================
+          MAPPA
+      ========================= */}
       <MapSection mapProperties={mapProperties} />
 
-      {/* GRADIENT WRAPPER */}
+      {/* =========================
+          WRAPPER GRADIENT
+          (sezioni scure sotto)
+      ========================= */}
       <div className="bg-[linear-gradient(to_bottom,rgb(93,92,87),rgb(68,68,44))]">
 
+        {/* CHI SONO */}
         <AboutSection />
 
+        {/* RECENSIONI */}
         <ReviewsSection
           reviews={reviews}
           paginatedReviews={paginatedReviews}
@@ -184,6 +270,7 @@ export default function Home() {
           formatDate={formatDate}
         />
 
+        {/* VALUTAZIONE IMMOBILE */}
         <ValuationSection
           valuationModalOpen={valuationModalOpen}
           setValuationModalOpen={setValuationModalOpen}

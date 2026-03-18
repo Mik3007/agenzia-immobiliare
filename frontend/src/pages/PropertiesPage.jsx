@@ -5,20 +5,48 @@ import HeroSearch from "../components/HeroSearch";
 import { useNavigate } from "react-router-dom";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import Loader from "../components/Loader";
 
+/**
+ * =========================
+ * PROPERTIES PAGE
+ * =========================
+ * Pagina lista immobili con:
+ * - filtro (HeroSearch)
+ * - animazioni (framer motion)
+ * - paginazione
+ *
+ * FIX:
+ * - loader coerente
+ * - sicurezza su items
+ * - fallback pagination corretto
+ */
 export default function PropertiesPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [sort] = useState("newest");
-  const [pagination, setPagination] = useState(null);
-  const [showFilter, setShowFilter] = useState(false);
+  const [items, setItems] = useState([]); // lista immobili
+  const [loading, setLoading] = useState(true); // stato loading
+  const [page, setPage] = useState(1); // pagina corrente
+  const [sort] = useState("newest"); // ordinamento
+  const [pagination, setPagination] = useState(null); // dati paginazione
+  const [showFilter, setShowFilter] = useState(false); // toggle mobile filtro
 
   const navigate = useNavigate();
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  /**
+   * =========================
+   * RESPONSIVE LIMIT
+   * =========================
+   * NOTA: non reattivo al resize (accettabile)
+   */
+  const isMobile =
+    typeof window !== "undefined" && window.innerWidth < 768;
+
   const limit = isMobile ? 6 : 12;
 
+  /**
+   * =========================
+   * LOAD IMMOBILI
+   * =========================
+   */
   async function load(params = {}) {
     setLoading(true);
 
@@ -27,20 +55,35 @@ export default function PropertiesPage() {
         params: { ...params, page, limit, sort },
       });
 
-      setItems(res.data.items || []);
-      setPagination(res.data.pagination || null);
+      // FIX: sicurezza dati
+      setItems(res.data?.items || []);
+      setPagination(res.data?.pagination || null);
+
     } catch (err) {
-      console.error(err);
+      console.error("Errore immobili:", err);
+
+      // fallback sicurezza
       setItems([]);
     } finally {
       setLoading(false);
     }
   }
 
+  /**
+   * =========================
+   * LOAD SU CAMBIO PAGINA / SORT
+   * =========================
+   */
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, sort]);
 
+  /**
+   * =========================
+   * SCROLL TOP PAGINA
+   * =========================
+   */
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
@@ -53,7 +96,10 @@ export default function PropertiesPage() {
       transition={{ duration: 0.4 }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        {/* HEADER */}
+
+        {/* =========================
+            HEADER
+        ========================= */}
         <motion.div
           className="mb-6 text-center md:text-left"
           initial={{ opacity: 0, y: -20 }}
@@ -62,12 +108,15 @@ export default function PropertiesPage() {
           <h1 className="text-2xl md:text-3xl font-semibold text-[#282828]">
             Tutti gli immobili
           </h1>
+
           <p className="mt-1 text-sm text-gray-500">
             Trova la soluzione perfetta per te
           </p>
         </motion.div>
 
-        {/* FILTRO MOBILE */}
+        {/* =========================
+            FILTRO MOBILE
+        ========================= */}
         <div className="md:hidden mb-6">
           <button
             onClick={() => setShowFilter(!showFilter)}
@@ -77,7 +126,9 @@ export default function PropertiesPage() {
           </button>
         </div>
 
-        {/* FILTRO */}
+        {/* =========================
+            FILTRO
+        ========================= */}
         <motion.div
           className={`mb-8 rounded-2xl border bg-white p-6 shadow-sm ${
             showFilter ? "block" : "hidden md:block"
@@ -94,10 +145,13 @@ export default function PropertiesPage() {
           />
         </motion.div>
 
-        {/* HEADER RISULTATI */}
+        {/* =========================
+            HEADER RISULTATI
+        ========================= */}
         <div className="flex justify-between items-center my-10">
           <p className="text-sm font-medium">
-            {pagination?.total || items.length} immobili trovati
+            {/* FIX: total gestito correttamente */}
+            {pagination?.total ?? items.length} immobili trovati
           </p>
 
           <button
@@ -108,10 +162,15 @@ export default function PropertiesPage() {
           </button>
         </div>
 
-        {/* GRID */}
+        {/* =========================
+            GRID / LOADER
+        ========================= */}
         {loading ? (
-          <div className="py-16 text-center text-gray-500">
-            Caricamento immobili…
+          /**
+           * FIX: loader coerente con resto app
+           */
+          <div className="py-16">
+            <Loader />
           </div>
         ) : items.length === 0 ? (
           <div className="py-16 text-center text-gray-500">
@@ -120,7 +179,7 @@ export default function PropertiesPage() {
         ) : (
           <motion.div
             className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3"
-            key={page} // 🔥 reset animazione a ogni pagina
+            key={page} // reset animazioni
             initial="hidden"
             animate="show"
             variants={{
@@ -132,7 +191,7 @@ export default function PropertiesPage() {
               },
             }}
           >
-            {items.map((item) => (
+            {(items || []).map((item) => (
               <motion.div
                 key={item._id}
                 variants={{
@@ -151,9 +210,12 @@ export default function PropertiesPage() {
           </motion.div>
         )}
 
-        {/* PAGINAZIONE */}
+        {/* =========================
+            PAGINAZIONE
+        ========================= */}
         {pagination && pagination.pages > 1 && (
           <div className="mt-12 flex flex-col items-center gap-4">
+
             {/* MOBILE */}
             <div className="flex items-center gap-4 md:hidden">
               <button

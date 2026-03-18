@@ -1,20 +1,34 @@
-// backend/src/app.js
+/**
+ * Import principali
+ */
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
+
+/**
+ * Import routes (ogni modulo gestisce una parte dell'API)
+ */
 import reviewsRoutes from "./routes/reviews.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import propertiesRoutes from "./routes/properties.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
-import { notFound, errorHandler } from "./middleware/error.js";
 import valuationRoutes from "./routes/valuation.routes.js";
 
+/**
+ * Middleware gestione errori
+ */
+import { notFound, errorHandler } from "./middleware/error.js";
+
+// Inizializzazione app Express
 const app = express();
 
 /**
- * CORS: limita le richieste al frontend.
- * Se deployi, aggiorna origin con il dominio reale.
+ * =========================
+ * CORS CONFIGURATION
+ * =========================
+ * Permette richieste solo dal frontend autorizzato.
+ * In produzione: usa dominio Vercel del cliente.
  */
 app.use(
   cors({
@@ -23,24 +37,51 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "2mb" })); // body JSON (per form e payload)
-app.use(morgan("dev")); // log richieste in dev
-app.use("/api/reviews", reviewsRoutes);
+/**
+ * =========================
+ * BODY PARSER
+ * =========================
+ * Limite 2mb per sicurezza (upload JSON, form, ecc.)
+ */
+app.use(express.json({ limit: "2mb" }));
 
 /**
- * Static per immagini caricate:
- * - quando carichi un'immagine, la salviamo in /src/uploads
- * - la esponiamo come URL pubblico: http://localhost:5000/uploads/<file>
+ * =========================
+ * LOGGER (solo sviluppo)
+ * =========================
+ * Morgan mostra le richieste in console
+ */
+app.use(morgan("dev"));
+
+/**
+ * =========================
+ * STATIC FILES
+ * =========================
+ * Espone le immagini caricate in locale
+ * URL finale:
+ * http://localhost:5000/uploads/<filename>
  */
 app.use("/uploads", express.static(path.resolve("src/uploads")));
 
-// API routes
+/**
+ * =========================
+ * API ROUTES
+ * =========================
+ * Ogni rotta è separata per dominio logico
+ */
+app.use("/api/reviews", reviewsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertiesRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/valuation", valuationRoutes);
 
-// Error handling
+/**
+ * =========================
+ * ERROR HANDLING
+ * =========================
+ * - notFound → route inesistenti
+ * - errorHandler → gestione centralizzata errori
+ */
 app.use(notFound);
 app.use(errorHandler);
 

@@ -1,6 +1,7 @@
 import Review from "../models/Review.js";
 import { Resend } from "resend";
 
+// Inizializzazione servizio email (Resend)
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /* ============================= */
@@ -10,10 +11,18 @@ export async function createReview(req, res) {
   try {
     const { name, rating, text } = req.body;
 
+    /**
+     * Validazione base input
+     */
     if (!name || !text) {
-      return res.status(400).json({ message: "Dati mancanti" });
+      res.status(400);
+      throw new Error("Dati mancanti");
     }
 
+    /**
+     * Creazione recensione:
+     * - status "pending" → approvazione manuale admin
+     */
     const review = await Review.create({
       name,
       rating,
@@ -21,7 +30,9 @@ export async function createReview(req, res) {
       status: "pending",
     });
 
-    /* invio mail admin */
+    /**
+     * Invio email admin (non blocca la richiesta)
+     */
     try {
       await resend.emails.send({
         from: "onboarding@resend.dev",
@@ -36,13 +47,19 @@ export async function createReview(req, res) {
         `,
       });
     } catch (err) {
-      console.log("Errore invio email:", err.message);
+      /**
+       * NON blocchiamo il flusso se la mail fallisce
+       * (scelta corretta lato UX)
+       */
+      console.error("⚠️ Errore invio email:", err.message);
     }
 
     res.json({ success: true, review });
   } catch (err) {
-    console.error("Errore createReview:", err);
-    res.status(500).json({ message: "Errore creazione recensione" });
+    /**
+     * Passaggio errore al middleware globale
+     */
+    throw err;
   }
 }
 
@@ -51,14 +68,17 @@ export async function createReview(req, res) {
 /* ============================= */
 export async function listApprovedReviews(req, res) {
   try {
+    /**
+     * Recupero solo recensioni approvate
+     * ordinate per data (più recenti prima)
+     */
     const items = await Review.find({ status: "approved" })
       .sort({ createdAt: -1 })
       .limit(20);
 
     res.json({ items });
   } catch (err) {
-    console.error("Errore listApprovedReviews:", err);
-    res.status(500).json({ message: "Errore caricamento recensioni" });
+    throw err;
   }
 }
 
@@ -67,12 +87,14 @@ export async function listApprovedReviews(req, res) {
 /* ============================= */
 export async function listAllReviews(req, res) {
   try {
+    /**
+     * Recupero completo per dashboard admin
+     */
     const items = await Review.find().sort({ createdAt: -1 });
 
     res.json({ items });
   } catch (err) {
-    console.error("Errore listAllReviews:", err);
-    res.status(500).json({ message: "Errore caricamento recensioni admin" });
+    throw err;
   }
 }
 
@@ -81,31 +103,47 @@ export async function listAllReviews(req, res) {
 /* ============================= */
 export async function approveReview(req, res) {
   try {
+    /**
+     * Aggiornamento stato → approved
+     */
     const review = await Review.findByIdAndUpdate(
       req.params.id,
       { status: "approved" },
       { new: true }
     );
 
+    /**
+     * Controllo se esiste
+     */
+    if (!review) {
+      res.status(404);
+      throw new Error("Recensione non trovata");
+    }
+
     res.json(review);
   } catch (err) {
-    console.error("Errore approveReview:", err);
-    res.status(500).json({ message: "Errore approvazione recensione" });
+    throw err;
   }
 }
 
 /* ============================= */
 /* RIFIUTA RECENSIONE */
-/* (la cancelliamo direttamente) */
 /* ============================= */
 export async function rejectReview(req, res) {
   try {
-    await Review.findByIdAndDelete(req.params.id);
+    /**
+     * Eliminazione diretta (scelta progettuale)
+     */
+    const review = await Review.findByIdAndDelete(req.params.id);
+
+    if (!review) {
+      res.status(404);
+      throw new Error("Recensione non trovata");
+    }
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Errore rejectReview:", err);
-    res.status(500).json({ message: "Errore rifiuto recensione" });
+    throw err;
   }
 }
 
@@ -114,11 +152,18 @@ export async function rejectReview(req, res) {
 /* ============================= */
 export async function deleteReview(req, res) {
   try {
-    await Review.findByIdAndDelete(req.params.id);
+    /**
+     * Eliminazione manuale da admin
+     */
+    const review = await Review.findByIdAndDelete(req.params.id);
+
+    if (!review) {
+      res.status(404);
+      throw new Error("Recensione non trovata");
+    }
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Errore deleteReview:", err);
-    res.status(500).json({ message: "Errore eliminazione recensione" });
+    throw err;
   }
 }

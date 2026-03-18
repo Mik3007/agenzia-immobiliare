@@ -1,7 +1,20 @@
 import { Resend } from "resend";
 
+/**
+ * Inizializzazione servizio email
+ */
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/* ============================= */
+/* CREA MESSAGGIO CONTATTO */
+/* ============================= */
+/**
+ * POST /api/contact
+ *
+ * Gestisce richiesta informazioni immobile:
+ * - riceve dati dal form frontend
+ * - invia email all'admin
+ */
 export async function createMessage(req, res) {
   try {
     const {
@@ -15,6 +28,17 @@ export async function createMessage(req, res) {
       propertyUrl,
     } = req.body;
 
+    /**
+     * Validazione base
+     */
+    if (!name || !email || !message) {
+      res.status(400);
+      throw new Error("Dati obbligatori mancanti");
+    }
+
+    /**
+     * Invio email tramite Resend
+     */
     await resend.emails.send({
       from: "onboarding@resend.dev",
       to: process.env.ADMIN_EMAIL,
@@ -44,10 +68,14 @@ export async function createMessage(req, res) {
       `,
     });
 
+    /**
+     * Risposta positiva
+     */
     res.json({ success: true });
-
   } catch (err) {
-    console.error("Errore invio richiesta info:", err);
-    res.status(500).json({ message: "Errore invio richiesta" });
+    /**
+     * Passaggio errore al middleware globale
+     */
+    throw err;
   }
 }

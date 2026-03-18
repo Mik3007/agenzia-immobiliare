@@ -2,38 +2,62 @@ import fotoChiSono from "../../assets/images/sectionChiSono.jpg";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
+/**
+ * =========================
+ * ABOUT SECTION (CHI SONO)
+ * =========================
+ * Sezione descrittiva dell’agente immobiliare.
+ * 
+ * Struttura:
+ * - Colonna sinistra: immagine
+ * - Colonna destra: testo descrittivo
+ * 
+ * Animazioni:
+ * - Entrata da sinistra (immagine)
+ * - Entrata da destra (testo)
+ */
 export default function AboutSection() {
   return (
-    <section id="about" className="px-4 py-20 bg-transparent">
+    <section
+      id="about" // anchor per navigazione
+      className="px-4 py-20 bg-transparent"
+    >
+      {/* Container principale con grid responsive */}
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-2 md:items-start">
 
-        {/* IMMAGINE */}
+        {/* =========================
+            IMMAGINE
+        ========================= */}
         <motion.div
           className="w-full overflow-hidden rounded-3xl bg-[#dddddd]"
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
+          initial={{ opacity: 0, x: -40 }} // partenza fuori a sinistra
+          whileInView={{ opacity: 1, x: 0 }} // entrata in viewport
+          viewport={{ once: true }} // animazione eseguita una sola volta
           transition={{ duration: 0.6 }}
         >
           <img
-            src={fotoChiSono}
+            src={fotoChiSono} // immagine importata
             alt="Chi sono"
             className="w-full object-cover object-[center_40%] h-72 sm:h-80 md:h-105 lg:h-120"
-            loading="lazy"
+            loading="lazy" // lazy loading per performance
           />
         </motion.div>
 
-        {/* TESTO */}
+        {/* =========================
+            TESTO
+        ========================= */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, x: 40 }} // partenza da destra
+          whileInView={{ opacity: 1, x: 0 }} // entrata in viewport
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: 0.6, delay: 0.1 }} // leggero ritardo rispetto immagine
         >
+          {/* Titolo */}
           <h2 className="text-2xl font-semibold text-[#282828]">
             Chi sono
           </h2>
 
+          {/* Descrizione */}
           <p className="mt-4 text-sm leading-relaxed text-[#99997b]">
             Sono un agente immobiliare con oltre dieci anni di esperienza
             reale sul campo, costruita collaborando con diverse agenzie e

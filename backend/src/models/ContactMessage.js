@@ -1,14 +1,69 @@
 import mongoose from "mongoose";
 
+/**
+ * =========================
+ * MODELLO MESSAGGIO CONTATTO
+ * =========================
+ * Rappresenta una richiesta inviata dal form contatti
+ * (eventualmente collegata a un immobile specifico)
+ */
 const contactMessageSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, default: "" },
-    message: { type: String, required: true },
-    propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property", default: null }, // se contattano per un annuncio specifico
+    /**
+     * Nome cliente
+     */
+    name: {
+      type: String,
+      required: true,
+    },
+
+    /**
+     * Email cliente
+     */
+    email: {
+      type: String,
+      required: true,
+    },
+
+    /**
+     * Telefono (opzionale)
+     */
+    phone: {
+      type: String,
+      default: "",
+    },
+
+    /**
+     * Messaggio inviato
+     */
+    message: {
+      type: String,
+      required: true,
+    },
+
+    /**
+     * Riferimento immobile (opzionale)
+     * - utile se il contatto riguarda un annuncio specifico
+     */
+    propertyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+      default: null,
+    },
   },
-  { timestamps: true }
+  {
+    /**
+     * timestamps:
+     * - createdAt → data invio
+     * - updatedAt → eventuali modifiche
+     */
+    timestamps: true,
+  },
 );
 
-export default mongoose.model("ContactMessage", contactMessageSchema);
+/**
+ * Export modello:
+ * evita duplicazioni in ambiente dev (hot reload)
+ */
+export default mongoose.models.ContactMessage ||
+  mongoose.model("ContactMessage", contactMessageSchema);

@@ -1,40 +1,63 @@
 import { useState } from "react";
 import api from "../api/client";
 
+/**
+ * =========================
+ * ADD REVIEW MODAL
+ * =========================
+ * Modal per l'invio di una nuova recensione.
+ *
+ * Funzioni principali:
+ * - apertura/chiusura controllata dal parent
+ * - inserimento nome, testo e valutazione
+ * - submit verso API backend
+ * - refresh recensioni dopo invio
+ */
 export default function AddReviewModal({ open, onClose, onSuccess }) {
-  const [name, setName] = useState("");
-  const [text, setText] = useState("");
-  const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState(""); // nome utente
+  const [text, setText] = useState(""); // testo recensione
+  const [rating, setRating] = useState(0); // voto selezionato
+  const [hover, setHover] = useState(0); // stato hover stelle
+  const [loading, setLoading] = useState(false); // loading submit
 
+  // Se il modal non è aperto, non renderizza nulla
   if (!open) return null;
 
+  /**
+   * Gestisce invio recensione
+   */
   async function handleSubmit(e) {
     e.preventDefault();
+
+    // Controllo valutazione selezionata
+    if (rating === 0) {
+      alert("Seleziona una valutazione");
+      return;
+    }
 
     try {
       setLoading(true);
 
+      // Invio recensione al backend
       await api.post("/api/reviews", {
         name,
         text,
         rating,
       });
 
-      if (rating === 0) {
-        alert("Seleziona una valutazione");
-        return;
-      }
-
+      // Reset campi dopo invio
       setName("");
       setText("");
       setRating(0);
       setHover(0);
 
+      // Callback opzionale per refresh dati nel parent
       onSuccess?.();
+
+      // Chiusura modal
       onClose();
 
+      // Feedback utente
       alert("Recensione inviata! Sarà pubblicata dopo approvazione.");
     } catch (err) {
       console.error(err);
@@ -47,18 +70,23 @@ export default function AddReviewModal({ open, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-        {/* HEADER */}
+        {/* =========================
+            HEADER
+        ========================= */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[#282828]">
             Lascia una recensione
           </h3>
 
+          {/* Bottone chiusura */}
           <button onClick={onClose} className="text-sm text-gray-500">
             ✕
           </button>
         </div>
 
-        {/* FORM */}
+        {/* =========================
+            FORM
+        ========================= */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* NOME */}
           <input
@@ -70,7 +98,7 @@ export default function AddReviewModal({ open, onClose, onSuccess }) {
             style={{ borderColor: "rgba(40,40,40,0.12)" }}
           />
 
-          {/* STELLE */}
+          {/* STELLE / VALUTAZIONE */}
           <div>
             <p className="text-sm mb-1 text-[#99997b]">Valutazione</p>
 
@@ -79,6 +107,7 @@ export default function AddReviewModal({ open, onClose, onSuccess }) {
               onMouseLeave={() => setHover(0)}
             >
               {[1, 2, 3, 4, 5].map((n) => {
+                // Stella attiva se hover o rating corrente >= n
                 const active = n <= (hover || rating);
 
                 return (
@@ -97,7 +126,7 @@ export default function AddReviewModal({ open, onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* TESTO */}
+          {/* TESTO RECENSIONE */}
           <textarea
             required
             placeholder="Scrivi la tua esperienza..."

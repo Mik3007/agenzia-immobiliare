@@ -1,21 +1,54 @@
 import jwt from "jsonwebtoken";
 
 /**
- * Middleware per proteggere le route admin.
- * - si aspetta header: Authorization: Bearer <token>
+ * =========================
+ * AUTH MIDDLEWARE (ADMIN)
+ * =========================
+ * Protegge le route private
+ *
+ * Richiede header:
+ * Authorization: Bearer <token>
  */
 export function requireAuth(req, res, next) {
-  console.log("AUTH HEADER:", req.headers.authorization);
+  /**
+   * Recupero header Authorization
+   */
   const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-  if (!token) return res.status(401).json({ message: "Token mancante" });
+  /**
+   * Estrazione token:
+   * - formato atteso: "Bearer <token>"
+   */
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+
+  /**
+   * Se manca token → errore 401
+   */
+  if (!token) {
+    res.status(401);
+    throw new Error("Token mancante");
+  }
 
   try {
+    /**
+     * Verifica token JWT
+     */
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { userId, role, email }
+
+    /**
+     * Salviamo i dati utente nella request
+     * (disponibili nei controller successivi)
+     */
+    req.user = payload; // es: { userId, role, email }
+
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token non valido" });
+    /**
+     * Token non valido o scaduto
+     */
+    res.status(401);
+    throw new Error("Token non valido");
   }
 }

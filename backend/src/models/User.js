@@ -1,13 +1,56 @@
 // backend/src/models/User.js
+
 import mongoose from "mongoose";
 
+/**
+ * =========================
+ * MODELLO UTENTE (User)
+ * =========================
+ * Gestisce autenticazione admin
+ */
 const userSchema = new mongoose.Schema(
   {
-    email: { type: String, required: true, unique: true },
-    passwordHash: { type: String, required: true },
-    role: { type: String, default: "admin" }, // qui potresti gestire più ruoli in futuro
+    /**
+     * Email utente (univoca)
+     */
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    /**
+     * Password hashata (bcrypt)
+     * NON salvare mai password in chiaro
+     */
+    passwordHash: {
+      type: String,
+      required: true,
+    },
+
+    /**
+     * Ruolo utente
+     * - attualmente: admin
+     * - estendibile in futuro (es. editor, agent, ecc.)
+     */
+    role: {
+      type: String,
+      default: "admin",
+    },
   },
-  { timestamps: true }
+  {
+    /**
+     * timestamps:
+     * - createdAt
+     * - updatedAt
+     */
+    timestamps: true,
+  }
 );
 
-export default mongoose.model("User", userSchema);
+/**
+ * Export modello:
+ * evita duplicazioni in dev (hot reload)
+ */
+export default mongoose.models.User ||
+  mongoose.model("User", userSchema);

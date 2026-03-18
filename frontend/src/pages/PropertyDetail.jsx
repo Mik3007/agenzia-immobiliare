@@ -4,10 +4,13 @@ import api from "../api/client";
 import * as Motion from "framer-motion";
 import PropertyMap from "../components/PropertyMap";
 import PropertyContactModal from "../components/PropertyContactModal";
+import Loader from "../components/Loader"; // ✅ aggiunto
 
 export default function PropertyDetail() {
   const { id } = useParams();
-  const realId = id.split("-").pop();
+
+  // ✅ FIX: evita crash se id undefined
+  const realId = id?.split("-").pop();
 
   const BRAND = useMemo(
     () => ({
@@ -30,6 +33,7 @@ export default function PropertyDetail() {
 
   const intervalRef = useRef(null);
 
+  // ✅ FIX: sicurezza array immagini
   const gallery = item?.images?.map((i) => i.url) || [];
   const hasImages = gallery.length > 0;
 
@@ -46,18 +50,20 @@ export default function PropertyDetail() {
     async function load() {
       try {
         const res = await api.get(`/api/properties/${realId}`);
+
         if (active) {
-          setItem(res.data.item);
+          setItem(res.data?.item || null); // ✅ FIX sicurezza
           setIndex(0);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Errore property:", err);
       } finally {
         if (active) setLoading(false);
       }
     }
 
-    load();
+    if (realId) load(); // ✅ FIX evita chiamata con undefined
+
     return () => (active = false);
   }, [realId]);
 
@@ -79,7 +85,7 @@ export default function PropertyDetail() {
     intervalRef.current = setInterval(() => {
       setDirection(1);
       setIndex((prev) => (prev + 1) % gallery.length);
-    }, 3500);
+    }, 2500);
 
     return () => clearInterval(intervalRef.current);
   }, [autoplay, hover, lightbox, hasImages, gallery.length]);
@@ -92,9 +98,20 @@ export default function PropertyDetail() {
 
   let content;
 
-  if (loading) content = <div>Caricamento…</div>;
-  else if (!item) content = <div>Immobile non trovato</div>;
-  else {
+  /**
+   * =========================
+   * FIX LOADER
+   * =========================
+   */
+  if (loading) {
+    content = (
+      <div className="py-20 flex justify-center">
+        <Loader />
+      </div>
+    );
+  } else if (!item) {
+    content = <div>Immobile non trovato</div>;
+  } else {
     content = (
       <>
         {/* GRID FOTO + INFO */}
@@ -209,8 +226,9 @@ export default function PropertyDetail() {
               {item.city} {item.address && `• ${item.address}`}
             </p>
 
+            {/* ✅ FIX: sicurezza prezzo */}
             <p className="mt-4 text-2xl font-medium">
-              € {Number(item.price).toLocaleString("it-IT")}
+              € {Number(item.price || 0).toLocaleString("it-IT")}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
@@ -245,7 +263,7 @@ export default function PropertyDetail() {
         </div>
 
         {/* PLANIMETRIE */}
-        <div >
+        <div>
           <h2 className="text-lg font-semibold mb-4">Planimetrie</h2>
 
           {item.planimetries?.length > 0 ? (
@@ -278,11 +296,6 @@ export default function PropertyDetail() {
                   );
                 })}
               </div>
-
-              <p className="mt-3 text-xs text-gray-500">
-                {item.planimetries.length} planimetr
-                {item.planimetries.length === 1 ? "ia" : "ie"} disponibili
-              </p>
             </>
           ) : (
             <p className="text-sm text-gray-500">

@@ -3,12 +3,12 @@ import cloudinary from "../config/cloudinary.js";
 import fs from "fs";
 
 /**
- * GET /api/properties
- * Filtri via query string:
- * - city, type, contract, minPrice, maxPrice, featured
- * - page, limit
+ * =========================
+ * UTIL: GEOLOCALIZZAZIONE
+ * =========================
+ * Usa Nominatim (OpenStreetMap)
+ * con più tentativi (fallback)
  */
-
 async function geocodeAddress(address, city, cap) {
   const queries = [
     `${address}, ${cap}, ${city}, Italia`,
@@ -17,10 +17,9 @@ async function geocodeAddress(address, city, cap) {
   ];
 
   for (const q of queries) {
-    await delay(1000); // rispetto limite nominatim
+    await delay(1000); // rispetto limiti API
 
     const query = encodeURIComponent(q);
-
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
 
     try {
@@ -41,17 +40,23 @@ async function geocodeAddress(address, city, cap) {
         };
       }
     } catch (err) {
-      console.error("Geocode error:", err);
+      console.error("⚠️ Errore geocoding:", err.message);
     }
   }
 
   return null;
 }
 
+/**
+ * Delay helper (necessario per rate limit)
+ */
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/* ============================= */
+/* LISTA IMMOBILI */
+/* ============================= */
 export async function listProperties(req, res, next) {
   try {
     const {
@@ -63,24 +68,31 @@ export async function listProperties(req, res, next) {
       featured,
       page = 1,
       limit = 12,
-      q, // ricerca testuale semplice (titolo/città)
+      q,
     } = req.query;
 
     const filter = {};
 
-    // Filtri “facili” da personalizzare
+    /**
+     * Filtri base
+     */
     if (city) filter.city = new RegExp(city, "i");
     if (type) filter.type = type;
     if (contract) filter.contract = contract;
     if (featured === "true") filter.featured = true;
 
+    /**
+     * Filtro prezzo
+     */
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Ricerca base su title/city (per qualcosa di più serio: text index)
+    /**
+     * Ricerca testuale base (title + city)
+     */
     if (q) {
       filter.$or = [
         { title: new RegExp(q, "i") },
@@ -90,11 +102,13 @@ export async function listProperties(req, res, next) {
 
     const skip = (Number(page) - 1) * Number(limit);
 
+    /**
+     * Query parallele:
+     * - items → dati
+     * - total → totale risultati
+     */
     const [items, total] = await Promise.all([
-      Property.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit)),
+      Property.find(filter).sort({ price: 1 }).skip(skip).limit(Number(limit)),
       Property.countDocuments(filter),
     ]);
 
@@ -112,39 +126,58 @@ export async function listProperties(req, res, next) {
   }
 }
 
+/* ============================= */
+/* IMMOBILI IN EVIDENZA */
+/* ============================= */
 export async function getFeatured(req, res, next) {
   try {
     const items = await Property.find({ featured: true })
-      .sort({ updatedAt: -1 })
+      .sort({ price: 1 })
       .limit(8);
+
     res.json({ items });
   } catch (err) {
     next(err);
   }
 }
 
+/* ============================= */
+/* DETTAGLIO IMMOBILE */
+/* ============================= */
 export async function getPropertyById(req, res, next) {
   try {
     const item = await Property.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: "Immobile non trovato" });
+
+    if (!item) {
+      res.status(404);
+      throw new Error("Immobile non trovato");
+    }
+
     res.json({ item });
   } catch (err) {
     next(err);
   }
 }
 
+/* ============================= */
+/* CREA IMMOBILE */
+/* ============================= */
 export async function createProperty(req, res, next) {
   try {
     const { address, city, cap } = req.body;
 
     let location = null;
 
+    /**
+     * Geocoding solo se dati completi
+     */
     if (address && city && cap) {
       location = await geocodeAddress(address, city, cap);
     }
 
     const created = await Property.create({
       ...req.body,
+      price: Math.round(Number(req.body.price)),
       location,
     });
 
@@ -154,18 +187,25 @@ export async function createProperty(req, res, next) {
   }
 }
 
+/* ============================= */
+/* AGGIORNA IMMOBILE */
+/* ============================= */
 export async function updateProperty(req, res, next) {
   try {
     const { address, city, cap } = req.body;
 
     const existing = await Property.findById(req.params.id);
 
-    if (!existing)
-      return res.status(404).json({ message: "Immobile non trovato" });
+    if (!existing) {
+      res.status(404);
+      throw new Error("Immobile non trovato");
+    }
 
     let location = existing.location;
 
-    // aggiorna la posizione solo se abbiamo tutti i dati
+    /**
+     * Aggiorna posizione solo se dati completi
+     */
     if (address && city && cap) {
       const geo = await geocodeAddress(address, city, cap);
       if (geo) location = geo;
@@ -175,6 +215,7 @@ export async function updateProperty(req, res, next) {
       req.params.id,
       {
         ...req.body,
+        price: Math.round(Number(req.body.price)), // ✅ AGGIUNGI QUESTO
         location,
       },
       { new: true },
@@ -186,34 +227,52 @@ export async function updateProperty(req, res, next) {
   }
 }
 
+/* ============================= */
+/* ELIMINA IMMOBILE */
+/* ============================= */
 export async function deleteProperty(req, res, next) {
   try {
-    // 1. trova immobile PRIMA
     const property = await Property.findById(req.params.id);
 
     if (!property) {
-      return res.status(404).json({ message: "Immobile non trovato" });
+      res.status(404);
+      throw new Error("Immobile non trovato");
     }
 
-    // 2. cancella immagini Cloudinary
+    /**
+     * Eliminazione immagini Cloudinary
+     * (evita file orfani)
+     */
     if (property.images?.length) {
       for (const img of property.images) {
         if (img.public_id) {
-          await cloudinary.uploader.destroy(img.public_id);
+          try {
+            await cloudinary.uploader.destroy(img.public_id);
+          } catch (err) {
+            console.error("⚠️ Errore eliminazione immagine:", err.message);
+          }
         }
       }
     }
 
-    // 3. cancella planimetrie
+    /**
+     * Eliminazione planimetrie
+     */
     if (property.planimetries?.length) {
       for (const plan of property.planimetries) {
         if (plan.public_id) {
-          await cloudinary.uploader.destroy(plan.public_id);
+          try {
+            await cloudinary.uploader.destroy(plan.public_id);
+          } catch (err) {
+            console.error("⚠️ Errore eliminazione planimetria:", err.message);
+          }
         }
       }
     }
 
-    // 4. cancella dal DB
+    /**
+     * Eliminazione documento DB
+     */
     await property.deleteOne();
 
     res.json({ ok: true });
@@ -221,11 +280,15 @@ export async function deleteProperty(req, res, next) {
     next(err);
   }
 }
+
+/* ============================= */
+/* IMMOBILI PIÙ RECENTI */
+/* ============================= */
 export const getLatest = async (req, res, next) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || "6", 10), 20);
 
-    const items = await Property.find({}).sort({ createdAt: -1 }).limit(limit);
+    const items = await Property.find({}).sort({ price: 1 }).limit(limit);
 
     res.json(items);
   } catch (err) {
@@ -233,10 +296,16 @@ export const getLatest = async (req, res, next) => {
   }
 };
 
+/* ============================= */
+/* UPLOAD IMMAGINI */
+/* ============================= */
 export async function uploadImages(req, res, next) {
   try {
     const files = req.files || [];
 
+    /**
+     * Upload parallelo su Cloudinary
+     */
     const uploadPromises = files.map((file) =>
       cloudinary.uploader.upload(file.path, {
         folder: "properties",
@@ -250,9 +319,17 @@ export async function uploadImages(req, res, next) {
 
     const results = await Promise.all(uploadPromises);
 
+    /**
+     * Pulizia file temporanei locali
+     */
     files.forEach((file) => {
-      fs.unlinkSync(file.path);
+      try {
+        fs.unlinkSync(file.path);
+      } catch (err) {
+        console.error("⚠️ Errore cleanup file:", err.message);
+      }
     });
+
     const images = results.map((r) => ({
       url: r.secure_url,
       public_id: r.public_id,
@@ -264,6 +341,9 @@ export async function uploadImages(req, res, next) {
   }
 }
 
+/* ============================= */
+/* ELIMINA SINGOLA IMMAGINE */
+/* ============================= */
 export async function deleteImage(req, res, next) {
   try {
     const { public_id } = req.body;

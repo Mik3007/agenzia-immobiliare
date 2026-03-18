@@ -2,7 +2,22 @@ import { useState } from "react";
 import logoEsteso from "../assets/brand/EBi_Logo esteso per sfondo chiaro (trasparente).png";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * =========================
+ * HERO + SEARCH COMPONENT
+ * =========================
+ * Due modalità:
+ * - HERO (home page)
+ * - COMPACT (pagina immobili)
+ *
+ * Props:
+ * - onSearch → callback che riceve i filtri correnti
+ * - compact → attiva la versione compatta
+ */
 export default function HeroSearch({ onSearch, compact = false }) {
+  /**
+   * Stato filtri ricerca
+   */
   const [filters, setFilters] = useState({
     q: "",
     contract: "vendita",
@@ -13,8 +28,15 @@ export default function HeroSearch({ onSearch, compact = false }) {
   });
 
   const nav = useNavigate();
+
+  /**
+   * Stato apertura filtro mobile
+   */
   const [openMobileFilter, setOpenMobileFilter] = useState(false);
 
+  /**
+   * Submit ricerca
+   */
   function handleSubmit(e) {
     e.preventDefault();
     onSearch?.(filters);
@@ -37,6 +59,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
         >
           {openMobileFilter ? "Chiudi ricerca" : "Cerca un immobile"}
         </button>
+
         <p className="text-sm font-semibold mb-4" style={{ color: "#282828" }}>
           Filtra immobili
         </p>
@@ -57,7 +80,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
               style={{ borderColor: "rgba(40,40,40,0.12)" }}
               placeholder="Città"
               value={filters.city}
-              onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, city: e.target.value })
+              }
             />
 
             <select
@@ -76,7 +101,9 @@ export default function HeroSearch({ onSearch, compact = false }) {
               className="rounded-2xl border px-4 py-3 text-sm"
               style={{ borderColor: "rgba(40,40,40,0.12)" }}
               value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, type: e.target.value })
+              }
             >
               <option value="">Tipologia</option>
               <option value="appartamento">Appartamento</option>
@@ -129,7 +156,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
   }
 
   /* ============================= */
-  /* ===== VERSIONE HERO HOME === */
+  /* ===== VERSIONE HERO HOME ==== */
   /* ============================= */
 
   return (
@@ -138,6 +165,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
       className="relative min-h-[78vh] px-4 pt-24 pb-16"
       style={{ backgroundColor: "#f0f1eb" }}
     >
+      {/* Background decorativo */}
       <div
         className="absolute inset-0"
         style={{
@@ -220,6 +248,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
           >
             {openMobileFilter ? "Chiudi ricerca" : "Cerca un immobile"}
           </button>
+
           <div
             className={`rounded-3xl border p-5 md:p-6 lg:p-7 shadow-sm md:max-w-sm lg:max-w-none ${
               openMobileFilter ? "block" : "hidden md:block"

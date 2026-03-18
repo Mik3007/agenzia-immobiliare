@@ -1,7 +1,20 @@
 import { useState } from "react";
 import api from "../api/client";
 
+/**
+ * =========================
+ * VALUATION MODAL
+ * =========================
+ * Modal per richiesta valutazione immobile.
+ * 
+ * Include:
+ * - dati proprietario
+ * - dati immobile
+ * - invio al backend
+ */
 export default function ValuationModal({ open, onClose }) {
+  
+  // stato form (tutti i campi)
   const [form, setForm] = useState({
     nome: "",
     cognome: "",
@@ -19,24 +32,40 @@ export default function ValuationModal({ open, onClose }) {
     message: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // stato submit
 
+  // se modal chiuso → non renderizza
   if (!open) return null;
 
+  /**
+   * =========================
+   * UPDATE GENERICO FORM
+   * =========================
+   * aggiorna dinamicamente il campo in base al name
+   */
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  /**
+   * =========================
+   * SUBMIT FORM
+   * =========================
+   * invia i dati al backend
+   */
   async function submit(e) {
     e.preventDefault();
 
     try {
       setLoading(true);
 
+      // invio dati form
       await api.post("/api/valuation", form);
 
+      // feedback utente
       alert("Richiesta inviata! Ti contatteremo a breve.");
 
+      // chiusura modal
       onClose();
     } catch (err) {
       console.error(err);
@@ -49,11 +78,16 @@ export default function ValuationModal({ open, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-xl max-h-[90vh] overflow-y-auto">
+        
+        {/* =========================
+            HEADER
+        ========================= */}
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold text-[#282828]">
             Valuta la tua casa
           </h3>
 
+          {/* chiusura modal */}
           <button onClick={onClose} className="text-gray-500">
             ✕
           </button>
@@ -61,7 +95,10 @@ export default function ValuationModal({ open, onClose }) {
 
         <form onSubmit={submit}>
           <div className="space-y-6">
-            {/* DATI PROPRIETARIO */}
+
+            {/* =========================
+                DATI PROPRIETARIO
+            ========================= */}
             <div
               className="border-b pb-8"
               style={{ borderColor: "rgba(40,40,40,0.08)" }}
@@ -74,7 +111,10 @@ export default function ValuationModal({ open, onClose }) {
                 Inserisci i tuoi contatti per essere ricontattato.
               </p>
 
+              {/* GRID INPUT */}
               <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+
+                {/* NOME */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Nome
@@ -89,6 +129,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* COGNOME */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Cognome
@@ -103,6 +144,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* TELEFONO */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Telefono
@@ -117,6 +159,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* EMAIL */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Email
@@ -134,7 +177,9 @@ export default function ValuationModal({ open, onClose }) {
               </div>
             </div>
 
-            {/* DATI IMMOBILE */}
+            {/* =========================
+                DATI IMMOBILE
+            ========================= */}
             <div
               className="border-b pb-8"
               style={{ borderColor: "rgba(40,40,40,0.08)" }}
@@ -148,6 +193,8 @@ export default function ValuationModal({ open, onClose }) {
               </p>
 
               <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+
+                {/* CITTÀ */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Città
@@ -162,6 +209,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* INDIRIZZO */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Indirizzo
@@ -175,6 +223,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* TIPOLOGIA */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Tipologia
@@ -196,6 +245,7 @@ export default function ValuationModal({ open, onClose }) {
                   </select>
                 </div>
 
+                {/* METRI QUADRI */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Metri quadri
@@ -209,6 +259,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* LOCALI */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Locali
@@ -222,6 +273,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* BAGNI */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Bagni
@@ -235,6 +287,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* PIANO */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Piano
@@ -248,6 +301,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* STATO */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-[#282828]">
                     Stato immobile
@@ -267,6 +321,7 @@ export default function ValuationModal({ open, onClose }) {
                   </select>
                 </div>
 
+                {/* PREZZO STIMATO */}
                 <div className="sm:col-span-3">
                   <label className="block text-sm font-medium text-[#282828]">
                     Quale pensi sia il valore del tuo immobile?
@@ -281,6 +336,7 @@ export default function ValuationModal({ open, onClose }) {
                   />
                 </div>
 
+                {/* NOTE */}
                 <div className="col-span-full">
                   <label className="block text-sm font-medium text-[#282828]">
                     Note aggiuntive
@@ -298,6 +354,9 @@ export default function ValuationModal({ open, onClose }) {
             </div>
           </div>
 
+          {/* =========================
+              AZIONI
+          ========================= */}
           <div className="mt-6 flex justify-end gap-x-4">
             <button
               type="button"

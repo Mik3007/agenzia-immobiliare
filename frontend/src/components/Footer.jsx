@@ -1,13 +1,28 @@
 import logoEsteso from "../assets/brand/EBi_Logo esteso per sfondo chiaro (trasparente).png";
 
+/**
+ * =========================
+ * FOOTER
+ * =========================
+ * Sezione finale del sito con:
+ * - logo e descrizione
+ * - contatti
+ * - dati legali
+ * - copyright
+ */
 export default function Footer() {
   return (
     <footer className="border-t bg-white mt-16">
       <div className="mx-auto max-w-6xl px-4 py-12">
 
-        {/* LOGO */}
+        {/* =========================
+            BLOCCO PRINCIPALE
+        ========================= */}
         <div className="flex flex-col items-center text-center md:flex-row md:items-start md:justify-between md:text-left">
 
+          {/* =========================
+              LOGO + DESCRIZIONE
+          ========================= */}
           <div className="mb-8 md:mb-0">
             <img
               src={logoEsteso}
@@ -22,7 +37,9 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* CONTATTI */}
+          {/* =========================
+              CONTATTI
+          ========================= */}
           <div className="space-y-2 text-sm text-gray-600">
             <p className="font-semibold text-gray-800">
               Contatti
@@ -34,7 +51,9 @@ export default function Footer() {
             <p>📨 biscardiemanuele@pec.libero.it</p>
           </div>
 
-          {/* DATI LEGALI */}
+          {/* =========================
+              DATI LEGALI
+          ========================= */}
           <div className="space-y-2 text-sm text-gray-600 mt-8 md:mt-0">
             <p className="font-semibold text-gray-800">
               Informazioni
@@ -47,7 +66,9 @@ export default function Footer() {
 
         </div>
 
-        {/* LINEA */}
+        {/* =========================
+            COPYRIGHT
+        ========================= */}
         <div className="border-t mt-10 pt-6 text-center text-xs text-gray-400">
           © {new Date().getFullYear()} Emanuele Biscardi Immobiliare — Tutti i diritti riservati
         </div>

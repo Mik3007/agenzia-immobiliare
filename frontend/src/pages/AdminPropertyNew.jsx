@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { isLoggedIn } from "../utils/auth";
 
+/**
+ * =========================
+ * TEMPLATE FORM VUOTO
+ * =========================
+ */
 const empty = {
   title: "",
   city: "",
@@ -22,28 +27,56 @@ const empty = {
 
 export default function AdminPropertyNew() {
   const nav = useNavigate();
+
+  // stato form principale
   const [form, setForm] = useState(empty);
+
+  // stato upload immagini
   const [uploading, setUploading] = useState(false);
+
+  // stato salvataggio
   const [saving, setSaving] = useState(false);
+
+  // preview locali (prima upload)
   const [previews, setPreviews] = useState([]);
 
+  /**
+   * =========================
+   * CHECK AUTH
+   * =========================
+   */
   useEffect(() => {
     if (!isLoggedIn()) nav("/admin");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * =========================
+   * INPUT NUMERICI
+   * =========================
+   * Mantiene stringa vuota se campo vuoto
+   */
   const setNum = (key) => (e) => {
-    // manteniamo stringa vuota se l'input è vuoto, così non vedi "0" ovunque
     const v = e.target.value;
-    setForm((prev) => ({ ...prev, [key]: v === "" ? "" : Number(v) }));
+
+    setForm((prev) => ({
+      ...prev,
+      [key]: v === "" ? "" : Number(v),
+    }));
   };
 
+  /**
+   * =========================
+   * UPLOAD IMMAGINI
+   * =========================
+   */
   async function onUploadImages(files) {
     if (!files?.length) return;
 
     const fileArray = Array.from(files);
 
-    // creo preview locali
+    // preview locale immediata
     const localPreviews = fileArray.map((file) => ({
       file,
       url: URL.createObjectURL(file),
@@ -61,18 +94,24 @@ export default function AdminPropertyNew() {
 
       const uploadedImages = res.data.images || [];
 
+      // aggiunge immagini al form
       setForm((prev) => ({
         ...prev,
         images: [...(prev.images || []), ...uploadedImages],
       }));
 
-      // ✅ RIMUOVO le preview appena caricate
+      // rimuove preview dopo upload
       setPreviews((prev) => prev.filter((p) => !fileArray.includes(p.file)));
     } finally {
       setUploading(false);
     }
   }
 
+  /**
+   * =========================
+   * UPLOAD PLANIMETRIE
+   * =========================
+   */
   async function onUploadPlanimetries(files) {
     if (!files?.length) return;
 
@@ -97,10 +136,15 @@ export default function AdminPropertyNew() {
     }
   }
 
+  /**
+   * =========================
+   * SALVATAGGIO IMMOBILE
+   * =========================
+   */
   async function save(e) {
     e.preventDefault();
 
-    // 🚫 BLOCCA se immagini ancora in upload
+    // blocca submit durante upload
     if (uploading) {
       alert("Attendi il completamento del caricamento immagini.");
       return;
@@ -109,6 +153,7 @@ export default function AdminPropertyNew() {
     setSaving(true);
 
     try {
+      // normalizzazione numeri
       const payload = {
         ...form,
         price: Number(form.price || 0),
@@ -117,9 +162,9 @@ export default function AdminPropertyNew() {
         areaMq: Number(form.areaMq || 0),
       };
 
-      console.log("IMAGES CHE STO SALVANDO:", payload.images); // DEBUG
-
       await api.post("/api/properties", payload);
+
+      // redirect dashboard
       nav("/admin/dashboard");
     } finally {
       setSaving(false);
@@ -128,10 +173,13 @@ export default function AdminPropertyNew() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      {/* Header */}
+      {/* =========================
+          HEADER
+      ========================= */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Nuovo immobile</h1>
+
           <p className="mt-2 text-sm text-gray-600">
             Compila i campi e salva. Le immagini vengono caricate in locale.
           </p>
@@ -146,7 +194,9 @@ export default function AdminPropertyNew() {
         </button>
       </div>
 
-      {/* Form */}
+      {/* =========================
+          FORM
+      ========================= */}
       <form
         onSubmit={save}
         className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 md:grid-cols-2"
