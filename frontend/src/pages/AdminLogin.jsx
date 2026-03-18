@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { setToken } from "../utils/auth";
 
@@ -14,7 +13,7 @@ import { setToken } from "../utils/auth";
  * - gestione errori
  */
 export default function AdminLogin() {
-  const nav = useNavigate();
+
 
   // stati form
   const [email, setEmail] = useState("");
@@ -41,15 +40,15 @@ export default function AdminLogin() {
       // salva token
       setToken(res.data.token);
 
-      // redirect dashboard
-      nav("/admin/dashboard");
+      // 🔥 forza redirect corretto
+      window.location.href = "/admin/dashboard";
     } catch (err) {
       console.error("LOGIN ERROR:", err);
 
       // gestione messaggio errore (fallback multipli)
       const msg =
         err?.response?.data?.message || // errore backend
-        err?.message ||                // errore generico
+        err?.message || // errore generico
         "Login fallito (controlla credenziali).";
 
       setErr(msg);
@@ -58,7 +57,6 @@ export default function AdminLogin() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-10">
-
       {/* =========================
           HEADER
       ========================= */}

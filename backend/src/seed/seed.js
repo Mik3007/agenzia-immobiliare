@@ -41,7 +41,12 @@ async function run() {
     const existing = await User.findOne({ email });
 
     if (existing) {
-      console.log("ℹ️ Admin già esistente:", email);
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      existing.passwordHash = passwordHash;
+      await existing.save();
+
+      console.log("♻️ Password aggiornata:", email);
       process.exit(0);
     }
 
