@@ -61,11 +61,6 @@ export default function AdminLogin() {
           HEADER
       ========================= */}
       <h1 className="text-2xl font-semibold">Admin</h1>
-
-      <p className="mt-2 text-sm text-gray-600">
-        Credenziali in backend/.env (ADMIN_EMAIL e ADMIN_PASSWORD)
-      </p>
-
       {/* =========================
           ERRORE
       ========================= */}

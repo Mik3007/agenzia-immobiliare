@@ -13,12 +13,19 @@ import { Navigate, Outlet } from "react-router-dom";
  */
 export default function RequireAuth() {
 
-  // recupero token salvato (login admin)
-  const token = localStorage.getItem("token"); 
+  /**
+   * Recupero token salvato nel login
+   * ⚠️ deve essere la stessa chiave di auth.js
+   */
+  const token = localStorage.getItem("admin_token");
 
-  // se NON autenticato → redirect
+  /**
+   * Se NON autenticato → redirect login
+   */
   if (!token) return <Navigate to="/admin" replace />;
 
-  // se autenticato → render figli della route
+  /**
+   * Se autenticato → mostra route protetta
+   */
   return <Outlet />;
 }

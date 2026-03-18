@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
-import { clearToken, isLoggedIn } from "../utils/auth";
+import { clearToken } from "../utils/auth";
 
 /**
  * =========================
@@ -25,21 +25,6 @@ export default function AdminDashboard() {
 
   /**
    * =========================
-   * CHECK AUTH + LOAD
-   * =========================
-   */
-  useEffect(() => {
-    // se non loggato → redirect login
-    if (!isLoggedIn()) nav("/admin");
-
-    // carica immobili
-    load();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /**
-   * =========================
    * FETCH IMMOBILI
    * =========================
    */
@@ -47,6 +32,23 @@ export default function AdminDashboard() {
     const res = await api.get("/api/properties", { params: { limit: 200 } });
     setItems(res.data.items || []);
   }
+
+  /**
+   * =========================
+   * CHECK AUTH + LOAD
+   * =========================
+   */
+  useEffect(() => {
+    async function loadData() {
+      const res = await api.get("/api/properties", {
+        params: { limit: 200 },
+      });
+
+      setItems(res.data.items || []);
+    }
+
+    loadData();
+  }, []);
 
   /**
    * =========================
@@ -112,7 +114,6 @@ export default function AdminDashboard() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-
       {/* =========================
           HEADER
       ========================= */}
@@ -127,7 +128,6 @@ export default function AdminDashboard() {
 
         {/* AZIONI */}
         <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
-
           <button
             onClick={() => nav("/")}
             className="rounded-xl border px-3 py-2 text-xs md:text-sm hover:bg-gray-50"
@@ -178,10 +178,8 @@ export default function AdminDashboard() {
           TABLE / LIST
       ========================= */}
       <section className="mt-6">
-
         {/* DESKTOP */}
         <div className="hidden md:block overflow-hidden rounded-2xl border bg-white">
-
           {/* HEADER */}
           <div className="grid grid-cols-12 gap-2 border-b bg-gray-50 p-3 text-xs font-semibold text-gray-600">
             <div className="col-span-6">Immobile</div>
@@ -260,7 +258,6 @@ export default function AdminDashboard() {
               className="rounded-2xl border bg-white p-4 shadow-sm"
             >
               <div className="flex gap-3">
-
                 <div className="h-20 w-28 overflow-hidden rounded-lg bg-gray-100 shrink-0">
                   <img
                     src={
