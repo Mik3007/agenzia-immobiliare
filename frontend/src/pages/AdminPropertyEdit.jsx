@@ -57,7 +57,10 @@ function SortableImage({ image, onRemove }) {
       {/* rimozione immagine */}
       <button
         type="button"
-        onClick={() => onRemove(image)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(image);
+  }}
         className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
       >
         ✕
