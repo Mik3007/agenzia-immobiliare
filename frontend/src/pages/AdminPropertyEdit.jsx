@@ -140,10 +140,10 @@ export default function AdminPropertyEdit() {
    * RIMOZIONE IMMAGINE
    * =========================
    */
-  async function removeImage(image) {
-    await api.delete("/api/properties/upload/image", {
-      data: { public_id: image.public_id },
-    });
+async function removeImage(image) {
+  await api.post("/api/properties/delete-image", {
+    public_id: image.public_id,
+  });
 
     setForm((prev) => ({
       ...prev,
