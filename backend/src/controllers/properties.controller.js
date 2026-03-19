@@ -1,6 +1,7 @@
 import Property from "../models/Property.js";
 import cloudinary from "../config/cloudinary.js";
 import fs from "fs";
+import streamifier from "streamifier";
 
 /**
  * =========================
@@ -306,16 +307,46 @@ export async function uploadImages(req, res, next) {
     /**
      * Upload parallelo su Cloudinary
      */
-    const uploadPromises = files.map((file) =>
-      cloudinary.uploader.upload(file.path, {
-        folder: "properties",
-        transformation: [
-          { width: 1600, crop: "limit" },
-          { quality: "auto" },
-          { fetch_format: "auto" },
-        ],
-      }),
-    );
+export async function uploadImages(req, res, next) {
+  try {
+    const files = req.files || [];
+
+    /**
+     * Upload parallelo su Cloudinary (BUFFER → STREAM)
+     */
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "properties",
+            transformation: [
+              { width: 1600, crop: "limit" },
+              { quality: "auto" },
+              { fetch_format: "auto" },
+            ],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+
+        streamifier.createReadStream(file.buffer).pipe(stream);
+      });
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    const images = results.map((r) => ({
+      url: r.secure_url,
+      public_id: r.public_id,
+    }));
+
+    res.json({ images });
+  } catch (err) {
+    next(err);
+  }
+}
 
     const results = await Promise.all(uploadPromises);
 
