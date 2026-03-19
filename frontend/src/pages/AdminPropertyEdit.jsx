@@ -41,18 +41,18 @@ function SortableImage({ image, onRemove }) {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative"
-    >
-      <img
-        src={image.url}
-        alt=""
-        className="h-24 w-32 rounded-xl object-cover"
-      />
+<div
+  ref={setNodeRef}
+  style={style}
+  {...attributes}
+  className="relative"
+>
+  <img
+    src={image.url}
+    alt=""
+    {...listeners}   // 👈 SOLO QUI
+    className="h-24 w-32 rounded-xl object-cover cursor-grab"
+  />
 
       {/* rimozione immagine */}
       <button
