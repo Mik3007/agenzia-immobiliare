@@ -32,13 +32,7 @@ const router = express.Router();
  * - salviamo in /src/uploads
  * - rinominiamo file per evitare collisioni
  */
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "src/uploads"),
-  filename: (req, file, cb) => {
-    const safeExt = path.extname(file.originalname).toLowerCase();
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 /**
  * Config multer:
@@ -120,5 +114,6 @@ router.post(
  * Eliminazione singola immagine Cloudinary
  */
 router.delete("/upload/image", requireAuth, deleteImage);
+router.post("/delete-image", requireAuth, deleteImage);
 
 export default router;

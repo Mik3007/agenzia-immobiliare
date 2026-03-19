@@ -41,23 +41,26 @@ function SortableImage({ image, onRemove }) {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative"
-    >
-      <img
-        src={image.url}
-        alt=""
-        className="h-24 w-32 rounded-xl object-cover"
-      />
+<div
+  ref={setNodeRef}
+  style={style}
+  {...attributes}
+  className="relative"
+>
+  <img
+    src={image.url}
+    alt=""
+    {...listeners}   // 👈 SOLO QUI
+    className="h-24 w-32 rounded-xl object-cover cursor-grab"
+  />
 
       {/* rimozione immagine */}
       <button
         type="button"
-        onClick={() => onRemove(image)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(image);
+  }}
         className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
       >
         ✕
@@ -140,10 +143,10 @@ export default function AdminPropertyEdit() {
    * RIMOZIONE IMMAGINE
    * =========================
    */
-  async function removeImage(image) {
-    await api.delete("/api/properties/upload/image", {
-      data: { public_id: image.public_id },
-    });
+async function removeImage(image) {
+  await api.post("/api/properties/delete-image", {
+    public_id: image.public_id,
+  });
 
     setForm((prev) => ({
       ...prev,
