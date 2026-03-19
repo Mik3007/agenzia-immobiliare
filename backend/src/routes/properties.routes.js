@@ -114,5 +114,6 @@ router.post(
  * Eliminazione singola immagine Cloudinary
  */
 router.delete("/upload/image", requireAuth, deleteImage);
+router.post("/delete-image", requireAuth, deleteImage);
 
 export default router;
