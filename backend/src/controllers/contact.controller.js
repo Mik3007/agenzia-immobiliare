@@ -40,8 +40,8 @@ export async function createMessage(req, res) {
      * Invio email tramite Resend
      */
     await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: process.env.ADMIN_EMAIL,
+      from: process.env.RESEND_FROM,
+      to: process.env.RESEND_TO,
       subject: "Richiesta informazioni immobile",
       html: `
         <h2>Nuova richiesta informazioni</h2>

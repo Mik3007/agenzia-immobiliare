@@ -46,8 +46,8 @@ export async function sendValuationRequest(req, res) {
      * Invio email tramite Resend
      */
     await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: process.env.ADMIN_EMAIL,
+      from: process.env.RESEND_FROM,
+      to: process.env.RESEND_TO,
       subject: "Richiesta valutazione casa",
       html: `
         <h2>Nuova richiesta valutazione immobile</h2>
@@ -77,7 +77,6 @@ export async function sendValuationRequest(req, res) {
      * Risposta OK
      */
     res.json({ success: true });
-
   } catch (err) {
     /**
      * Passaggio errore al middleware globale

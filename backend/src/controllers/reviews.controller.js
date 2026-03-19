@@ -35,8 +35,8 @@ export async function createReview(req, res) {
      */
     try {
       await resend.emails.send({
-        from: "onboarding@resend.dev",
-        to: process.env.ADMIN_EMAIL,
+        from: process.env.RESEND_FROM,
+        to: process.env.RESEND_TO,
         subject: "Nuova recensione ricevuta",
         html: `
           <h2>Nuova recensione dal sito</h2>
@@ -109,7 +109,7 @@ export async function approveReview(req, res) {
     const review = await Review.findByIdAndUpdate(
       req.params.id,
       { status: "approved" },
-      { new: true }
+      { new: true },
     );
 
     /**
