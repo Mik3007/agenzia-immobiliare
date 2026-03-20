@@ -123,7 +123,9 @@ export default function FeaturedSection({
               },
             }}
           >
-            {properties.map((p) => (
+            {[...properties]
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // 🔥 più recenti prima
+              .map((p) => (
               <motion.div
                 key={p._id} // chiave univoca per React
                 className="min-w-65 sm:min-w-75 lg:min-w-85 snap-start transition-all duration-300 lg:group-hover:brightness-50 lg:hover:brightness-100 lg:hover:min-w-95 lg:hover:shadow-2xl"
