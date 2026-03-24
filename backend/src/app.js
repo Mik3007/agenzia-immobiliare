@@ -43,27 +43,32 @@ app.use((err, req, res, next) => {
 
 app.use(
   cors({
-origin: (origin, callback) => {
-  if (!origin) return callback(null, true);
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
 
-  const allowedOrigins = [
-    process.env.CLIENT_URL,
-    "https://www.biscardimmobiliare.it",
-    "https://biscardimmobiliare.it",
-  ].map(o => o?.replace(/\/$/, ""));
+      const allowedOrigins = [
+        process.env.CLIENT_URL,
+        "https://www.biscardimmobiliare.it",
+        "https://biscardimmobiliare.it",
+      ].map(o => o?.replace(/\/$/, ""));
 
-  const requestOrigin = origin.replace(/\/$/, "");
+      const requestOrigin = origin.replace(/\/$/, "");
 
-  if (allowedOrigins.includes(requestOrigin)) {
-    return callback(null, true);
-  }
+      // ✅ allow vercel preview domains
+      if (requestOrigin.includes("vercel.app")) {
+        return callback(null, true);
+      }
 
-  return callback(new Error("CORS non autorizzato: " + origin));
-},
+      // ✅ allow domini ufficiali
+      if (allowedOrigins.includes(requestOrigin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS non autorizzato: " + origin));
+    },
     credentials: true,
   })
 );
-
 /**
  * =========================
  * BODY PARSER
