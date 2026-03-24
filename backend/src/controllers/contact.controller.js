@@ -39,43 +39,34 @@ export async function createMessage(req, res) {
     /**
      * Invio email tramite Resend
      */
-    await resend.emails.send({
-      from: process.env.RESEND_FROM,
-      to: process.env.RESEND_TO,
-      subject: "Richiesta informazioni immobile",
-      html: `
-        <h2>Nuova richiesta informazioni</h2>
+try {
+  console.log("🚀 Invio email con Resend...");
 
-        <h3>Dati cliente</h3>
-        <p><b>Nome:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Telefono:</b> ${phone || "-"}</p>
+  const response = await resend.emails.send({
+    from: process.env.RESEND_FROM,
+    to: process.env.RESEND_TO,
+    subject: `Nuova richiesta immobile: ${propertyTitle}`,
+    html: `
+      <h2>Nuova richiesta contatto</h2>
+      <p><strong>Nome:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Telefono:</strong> ${phone}</p>
+      <p><strong>Messaggio:</strong> ${message}</p>
+      <hr />
+      <p><strong>Immobile:</strong> ${propertyTitle}</p>
+      <p><strong>Città:</strong> ${propertyCity}</p>
+      <p><strong>Prezzo:</strong> €${propertyPrice}</p>
+    `,
+  });
 
-        <h3>Messaggio</h3>
-        <p>${message}</p>
+  console.log("✅ RESEND RESPONSE:", response);
 
-        <h3>Immobile</h3>
-        <p><b>Titolo:</b> ${propertyTitle}</p>
-        <p><b>Città:</b> ${propertyCity}</p>
-        <p><b>Prezzo:</b> € ${propertyPrice}</p>
+  res.status(200).json({ success: true });
+} catch (error) {
+  console.error("❌ ERRORE RESEND:", error);
 
-        <p>
-          <b>Link immobile:</b><br/>
-          <a href="${propertyUrl}">
-            ${propertyUrl}
-          </a>
-        </p>
-      `,
-    });
-
-    /**
-     * Risposta positiva
-     */
-    res.json({ success: true });
-  } catch (err) {
-    /**
-     * Passaggio errore al middleware globale
-     */
-    throw err;
-  }
+  res.status(500).json({
+    success: false,
+    message: "Errore invio email",
+  });
 }
