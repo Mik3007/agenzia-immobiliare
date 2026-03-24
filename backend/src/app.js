@@ -43,20 +43,23 @@ app.use((err, req, res, next) => {
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // permette richieste server-side / postman
-      if (!origin) return callback(null, true);
+origin: (origin, callback) => {
+  if (!origin) return callback(null, true);
 
-      const allowed = process.env.CLIENT_URL?.replace(/\/$/, "");
+  const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "https://www.biscardimmobiliare.it",
+    "https://biscardimmobiliare.it",
+  ].map(o => o?.replace(/\/$/, ""));
 
-      const requestOrigin = origin.replace(/\/$/, "");
+  const requestOrigin = origin.replace(/\/$/, "");
 
-      if (requestOrigin === allowed) {
-        return callback(null, true);
-      }
+  if (allowedOrigins.includes(requestOrigin)) {
+    return callback(null, true);
+  }
 
-      return callback(new Error("CORS non autorizzato: " + origin));
-    },
+  return callback(new Error("CORS non autorizzato: " + origin));
+},
     credentials: true,
   })
 );
