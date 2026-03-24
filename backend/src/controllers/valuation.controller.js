@@ -1,18 +1,14 @@
-import { Resend } from "resend";
+import { sendEmail } from "./sendEmail.js";
 
 /**
- * Inizializzazione servizio email
- */
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-/* ============================= */
-/* RICHIESTA VALUTAZIONE */
-/* ============================= */
-/**
+ * =========================
+ * RICHIESTA VALUTAZIONE
+ * =========================
  * POST /api/valuation
  *
  * Gestisce richiesta valutazione immobile:
  * - riceve dati dal form
+ * - valida i dati obbligatori
  * - invia email all'admin
  */
 export async function sendValuationRequest(req, res) {
@@ -35,38 +31,44 @@ export async function sendValuationRequest(req, res) {
     } = req.body;
 
     /**
-     * Validazione base
+     * =========================
+     * VALIDAZIONE BASE
+     * =========================
      */
     if (!nome || !telefono || !email || !city) {
-      res.status(400);
-      throw new Error("Dati obbligatori mancanti");
+      return res.status(400).json({
+        success: false,
+        message: "Dati obbligatori mancanti",
+      });
     }
 
     /**
-     * Invio email tramite Resend
+     * =========================
+     * INVIO EMAIL
+     * =========================
+     * L'admin riceve una mail completa con i dati
+     * della richiesta di valutazione.
      */
-    await resend.emails.send({
-      from: process.env.RESEND_FROM,
-      to: process.env.RESEND_TO,
+    await sendEmail({
       subject: "Richiesta valutazione casa",
       html: `
         <h2>Nuova richiesta valutazione immobile</h2>
 
         <h3>Dati proprietario</h3>
-        <p><b>Nome:</b> ${nome} ${cognome || ""}</p>
-        <p><b>Telefono:</b> ${telefono}</p>
-        <p><b>Email:</b> ${email}</p>
+        <p><strong>Nome:</strong> ${nome} ${cognome || ""}</p>
+        <p><strong>Telefono:</strong> ${telefono}</p>
+        <p><strong>Email:</strong> ${email}</p>
 
         <h3>Dati immobile</h3>
-        <p><b>Città:</b> ${city}</p>
-        <p><b>Indirizzo:</b> ${address || "-"}</p>
-        <p><b>Tipologia:</b> ${type || "-"}</p>
-        <p><b>Metri quadri:</b> ${sqm || "-"}</p>
-        <p><b>Locali:</b> ${rooms || "-"}</p>
-        <p><b>Bagni:</b> ${bathrooms || "-"}</p>
-        <p><b>Piano:</b> ${floor || "-"}</p>
-        <p><b>Stato immobile:</b> ${condition || "-"}</p>
-        <p><b>Valore stimato proprietario:</b> ${estimatedPrice || "-"} €</p>
+        <p><strong>Città:</strong> ${city}</p>
+        <p><strong>Indirizzo:</strong> ${address || "-"}</p>
+        <p><strong>Tipologia:</strong> ${type || "-"}</p>
+        <p><strong>Metri quadri:</strong> ${sqm || "-"}</p>
+        <p><strong>Locali:</strong> ${rooms || "-"}</p>
+        <p><strong>Bagni:</strong> ${bathrooms || "-"}</p>
+        <p><strong>Piano:</strong> ${floor || "-"}</p>
+        <p><strong>Stato immobile:</strong> ${condition || "-"}</p>
+        <p><strong>Valore stimato proprietario:</strong> ${estimatedPrice || "-"} €</p>
 
         <h3>Messaggio</h3>
         <p>${message || "-"}</p>
@@ -74,13 +76,22 @@ export async function sendValuationRequest(req, res) {
     });
 
     /**
-     * Risposta OK
+     * =========================
+     * RISPOSTA OK
+     * =========================
      */
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     /**
-     * Passaggio errore al middleware globale
+     * =========================
+     * ERRORE GENERALE
+     * =========================
      */
-    throw err;
+    console.error("❌ ERRORE CONTROLLER VALUATION:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Errore invio richiesta valutazione",
+    });
   }
 }
