@@ -10,8 +10,9 @@ import streamifier from "streamifier";
 async function geocodeAddress(address, city, cap) {
   const queries = [
     `${address}, ${cap}, ${city}, Italia`,
+    `${address}, ${cap}, Italia`,      // 🔥 NUOVO
     `${address}, ${city}, Italia`,
-    `${address}, ${city}`,
+    `${cap}, Italia`,                  // 🔥 NUOVO (fondamentale)
   ];
 
   for (const q of queries) {
@@ -40,7 +41,13 @@ async function geocodeAddress(address, city, cap) {
     }
   }
 
-  return null;
+  console.warn("❌ Geocoding fallito:", address, city, cap);
+
+  // 🔥 fallback (così NON perdi mai immobili in mappa)
+  return {
+    lat: 41.074,
+    lng: 14.332,
+  };
 }
 
 function delay(ms) {
