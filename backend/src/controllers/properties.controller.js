@@ -10,20 +10,25 @@ import streamifier from "streamifier";
  * con più fallback per evitare location null
  */
 async function geocodeAddress(address, city, cap) {
+  // 🔥 pulizia indirizzo (togli punti tipo G. B.)
+  const cleanAddress = address?.replace(/\./g, "").trim();
+
   const queries = [
-    `${address}, ${cap}, ${city}, Italia`, // completo
-    `${address}, ${cap}, Italia`,          // 🔥 senza città
-    `${address}, ${city}, Italia`,
-    `${cap}, Italia`,                      // 🔥 fallback forte (fondamentale)
+    `${cleanAddress}, ${cap}, ${city}, Italia`,
+    `${cleanAddress}, ${cap}, Italia`,
+    `${cleanAddress}, ${city}, Italia`,
+    `${cap} ${city}, Italia`, // 🔥 molto più preciso del solo CAP
   ];
 
   for (const q of queries) {
-    await delay(1000); // rispetto rate limit API
+    await delay(1000);
 
     const query = encodeURIComponent(q);
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
 
     try {
+      console.log("GEOCODING:", q); // 🔍 debug utile
+
       const res = await fetch(url, {
         headers: { "User-Agent": "biscardi-immobiliare" },
       });
@@ -43,13 +48,10 @@ async function geocodeAddress(address, city, cap) {
     }
   }
 
-  // 🔴 fallback finale → evita immobili "invisibili" sulla mappa
+  // ❌ NIENTE fallback fake → meglio null che posizione sbagliata
   console.warn("❌ Geocoding fallito:", address, city, cap);
 
-  return {
-    lat: 41.074, // zona Caserta fallback
-    lng: 14.332,
-  };
+  return null;
 }
 
 /**
