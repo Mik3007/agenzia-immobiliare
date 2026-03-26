@@ -172,6 +172,27 @@ async function removePlanimetry(image) {
   }));
 }
 
+  async function onUploadPlanimetries(files) {
+  if (!files?.length) return;
+
+  const fd = new FormData();
+  Array.from(files).forEach((f) => fd.append("images", f));
+
+  setUploading(true);
+
+  const res = await api.post("/api/properties/upload/images", fd);
+
+  setForm((prev) => ({
+    ...prev,
+    planimetries: [
+      ...(prev.planimetries || []),
+      ...res.data.images,
+    ],
+  }));
+
+  setUploading(false);
+}
+
   /**
    * =========================
    * DRAG END (RIORDINO)
@@ -459,6 +480,21 @@ function handleDragEnd(event) {
       </div>
     </SortableContext>
   </DndContext>
+</div>
+
+<div className="flex items-center justify-between">
+  <p className="text-sm font-semibold">Planimetrie</p>
+
+  <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+    {uploading ? "Caricamento…" : "Aggiungi"}
+    <input
+      type="file"
+      multiple
+      className="hidden"
+      accept="image/*"
+      onChange={(e) => onUploadPlanimetries(e.target.files)}
+    />
+  </label>
 </div>
 
 {/* PLANIMETRIE */}
