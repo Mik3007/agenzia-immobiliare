@@ -155,28 +155,49 @@ async function removeImage(image) {
   }
 
   /**
+ * =========================
+ * RIMOZIONE PLANIMETRIA
+ * =========================
+ */
+async function removePlanimetry(image) {
+  await api.post("/api/properties/delete-image", {
+    public_id: image.public_id,
+  });
+
+  setForm((prev) => ({
+    ...prev,
+    planimetries: prev.planimetries.filter(
+      (img) => img.public_id !== image.public_id
+    ),
+  }));
+}
+
+  /**
    * =========================
    * DRAG END (RIORDINO)
    * =========================
    */
-  function handleDragEnd(event) {
-    const { active, over } = event;
+function handleDragEnd(event) {
+  const { active, over } = event;
 
-    if (active.id !== over?.id) {
-      setForm((prev) => {
-        const oldIndex = prev.images.findIndex(
-          (i) => i.public_id === active.id,
-        );
+  // 🔥 FIX: evita crash quando over è null
+  if (!over || active.id === over.id) return;
 
-        const newIndex = prev.images.findIndex((i) => i.public_id === over.id);
+  setForm((prev) => {
+    const oldIndex = prev.images.findIndex(
+      (i) => i.public_id === active.id
+    );
 
-        return {
-          ...prev,
-          images: arrayMove(prev.images, oldIndex, newIndex),
-        };
-      });
-    }
-  }
+    const newIndex = prev.images.findIndex(
+      (i) => i.public_id === over.id
+    );
+
+    return {
+      ...prev,
+      images: arrayMove(prev.images, oldIndex, newIndex),
+    };
+  });
+}
 
   /**
    * =========================
@@ -283,6 +304,20 @@ async function removeImage(image) {
           />
         </div>
 
+        {/* CAP */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-600">
+            CAP *
+          </label>
+
+          <input
+            className="w-full rounded-xl border px-3 py-2 text-sm"
+            value={form.cap || ""}
+            required
+            onChange={(e) => setForm({ ...form, cap: e.target.value })}
+            />
+        </div>
+
         {/* Contratto */}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">
@@ -387,44 +422,69 @@ async function removeImage(image) {
           />
         </div>
 
-        {/* IMMAGINI */}
-        <div className="md:col-span-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Immagini</p>
+{/* IMMAGINI */}
+<div className="md:col-span-2">
+  <div className="flex items-center justify-between">
+    <p className="text-sm font-semibold">Immagini</p>
 
-            <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
-              {uploading ? "Caricamento…" : "Aggiungi immagini"}
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => onUploadImages(e.target.files)}
-              />
-            </label>
-          </div>
+    <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+      {uploading ? "Caricamento…" : "Aggiungi immagini"}
+      <input
+        type="file"
+        multiple
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => onUploadImages(e.target.files)}
+      />
+    </label>
+  </div>
 
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={form.images.map((i) => i.public_id)}
-              strategy={rectSortingStrategy}
-            >
-              <div className="mt-4 flex flex-wrap gap-3">
-                {form.images.map((image) => (
-                  <SortableImage
-                    key={image.public_id}
-                    image={image}
-                    onRemove={removeImage}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
+  <DndContext
+    sensors={sensors}
+    collisionDetection={closestCenter}
+    onDragEnd={handleDragEnd}
+  >
+    <SortableContext
+      items={form.images.map((i) => i.public_id)}
+      strategy={rectSortingStrategy}
+    >
+      <div className="mt-4 flex flex-wrap gap-3">
+        {form.images.map((image) => (
+          <SortableImage
+            key={image.public_id}
+            image={image}
+            onRemove={removeImage}
+          />
+        ))}
+      </div>
+    </SortableContext>
+  </DndContext>
+</div>
+
+{/* PLANIMETRIE */}
+<div className="md:col-span-2">
+  <p className="text-sm font-semibold">Planimetrie</p>
+
+  <div className="mt-3 flex flex-wrap gap-3">
+    {(form.planimetries || []).map((image) => (
+      <div key={image.public_id} className="relative">
+        <img
+          src={image.url}
+          alt=""
+          className="h-24 w-32 rounded-xl object-cover"
+        />
+
+        <button
+          type="button"
+          onClick={() => removePlanimetry(image)}
+          className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
+        >
+          ✕
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
 
         <div className="md:col-span-2">
           <button
