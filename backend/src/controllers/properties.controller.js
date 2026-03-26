@@ -195,10 +195,13 @@ export async function updateProperty(req, res, next) {
     const finalCity = city || existing.city;
     const finalCap = cap || existing.cap;
 
-    // 🔥 sempre geocoding se almeno uno esiste
-    if (finalAddress || finalCity || finalCap) {
-      location = await geocodeAddress(finalAddress, finalCity, finalCap);
-    }
+const geo = await geocodeAddress(finalAddress, finalCity, finalCap);
+
+// 🔥 se trova → aggiorna
+if (geo) {
+  location = geo;
+}
+// 🔥 se NON trova → mantiene quella esistente
 
     const updated = await Property.findByIdAndUpdate(
       req.params.id,
