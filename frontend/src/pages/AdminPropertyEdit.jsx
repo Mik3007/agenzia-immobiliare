@@ -42,18 +42,13 @@ function SortableImage({ image, onRemove }) {
   };
 
   return (
-<div
-  ref={setNodeRef}
-  style={style}
-  {...attributes}
-  className="relative"
->
-  <img
-    src={image.url}
-    alt=""
-    {...listeners}   // 👈 SOLO QUI
-    className="h-24 w-32 rounded-xl object-cover cursor-grab"
-  />
+    <div ref={setNodeRef} style={style} {...attributes} className="relative">
+      <img
+        src={image.url}
+        alt=""
+        {...listeners} // 👈 SOLO QUI
+        className="h-24 w-32 rounded-xl object-cover cursor-grab"
+      />
 
       {/* rimozione immagine */}
       <button
@@ -61,7 +56,7 @@ function SortableImage({ image, onRemove }) {
         onClick={(e) => {
           e.stopPropagation();
           onRemove(image);
-  }}
+        }}
         className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
       >
         ✕
@@ -157,10 +152,10 @@ export default function AdminPropertyEdit() {
    * RIMOZIONE IMMAGINE
    * =========================
    */
-async function removeImage(image) {
-  await api.post("/api/properties/delete-image", {
-    public_id: image.public_id,
-  });
+  async function removeImage(image) {
+    await api.post("/api/properties/delete-image", {
+      public_id: image.public_id,
+    });
 
     setForm((prev) => ({
       ...prev,
@@ -169,70 +164,63 @@ async function removeImage(image) {
   }
 
   /**
- * =========================
- * RIMOZIONE PLANIMETRIA
- * =========================
- */
-async function removePlanimetry(image) {
-  await api.post("/api/properties/delete-image", {
-    public_id: image.public_id,
-  });
+   * =========================
+   * RIMOZIONE PLANIMETRIA
+   * =========================
+   */
+  async function removePlanimetry(image) {
+    await api.post("/api/properties/delete-image", {
+      public_id: image.public_id,
+    });
 
-  setForm((prev) => ({
-    ...prev,
-    planimetries: prev.planimetries.filter(
-      (img) => img.public_id !== image.public_id
-    ),
-  }));
-}
+    setForm((prev) => ({
+      ...prev,
+      planimetries: prev.planimetries.filter(
+        (img) => img.public_id !== image.public_id,
+      ),
+    }));
+  }
 
   async function onUploadPlanimetries(files) {
-  if (!files?.length) return;
+    if (!files?.length) return;
 
-  const fd = new FormData();
-  Array.from(files).forEach((f) => fd.append("images", f));
+    const fd = new FormData();
+    Array.from(files).forEach((f) => fd.append("images", f));
 
-  setUploading(true);
+    setUploading(true);
 
-  const res = await api.post("/api/properties/upload/images", fd);
+    const res = await api.post("/api/properties/upload/images", fd);
 
-  setForm((prev) => ({
-    ...prev,
-    planimetries: [
-      ...(prev.planimetries || []),
-      ...res.data.images,
-    ],
-  }));
+    setForm((prev) => ({
+      ...prev,
+      planimetries: [...(prev.planimetries || []), ...res.data.images],
+    }));
 
-  setUploading(false);
-}
+    setUploading(false);
+  }
 
   /**
    * =========================
    * DRAG END (RIORDINO)
    * =========================
    */
-function handleDragEnd(event) {
-  const { active, over } = event;
+  function handleDragEnd(event) {
+    const { active, over } = event;
 
-  // 🔥 FIX: evita crash quando over è null
-  if (!over || active.id === over.id) return;
+    // 🔥 FIX: evita crash quando over è null
+    if (!over || active.id === over.id) return;
 
-  setForm((prev) => {
-    const oldIndex = prev.images.findIndex(
-      (i) => i.public_id === active.id
-    );
+    setForm((prev) => {
+      const oldIndex = prev.images.findIndex((i) => i.public_id === active.id);
 
-    const newIndex = prev.images.findIndex(
-      (i) => i.public_id === over.id
-    );
+      const newIndex = prev.images.findIndex((i) => i.public_id === over.id);
 
-    return {
-      ...prev,
-      images: arrayMove(prev.images, oldIndex, newIndex),
-    };
-  });
-}
+      return {
+        ...prev,
+        images: arrayMove(prev.images, oldIndex, newIndex),
+      };
+    });
+  }
 
   /**
    * =========================
@@ -350,15 +338,15 @@ function handleDragEnd(event) {
             value={form.cap || ""}
             required
             onChange={(e) => setForm({ ...form, cap: e.target.value })}
-            />
+          />
         </div>
         <button
-  type="button"
-  onClick={() => setSelectingLocation(true)}
-  className="text-sm text-blue-600 underline"
->
-  Imposta posizione su mappa
-</button>
+          type="button"
+          onClick={() => setSelectingLocation(true)}
+          className="text-sm text-blue-600 underline"
+        >
+          Imposta posizione su mappa
+        </button>
 
         {/* Contratto */}
         <div>
@@ -464,84 +452,84 @@ function handleDragEnd(event) {
           />
         </div>
 
-{/* IMMAGINI */}
-<div className="md:col-span-2">
-  <div className="flex items-center justify-between">
-    <p className="text-sm font-semibold">Immagini</p>
+        {/* IMMAGINI */}
+        <div className="md:col-span-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">Immagini</p>
 
-    <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
-      {uploading ? "Caricamento…" : "Aggiungi immagini"}
-      <input
-        type="file"
-        multiple
-        className="hidden"
-        accept="image/*"
-        onChange={(e) => onUploadImages(e.target.files)}
-      />
-    </label>
-  </div>
+            <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              {uploading ? "Caricamento…" : "Aggiungi immagini"}
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => onUploadImages(e.target.files)}
+              />
+            </label>
+          </div>
 
-  <DndContext
-    sensors={sensors}
-    collisionDetection={closestCenter}
-    onDragEnd={handleDragEnd}
-  >
-    <SortableContext
-      items={form.images.map((i) => i.public_id)}
-      strategy={rectSortingStrategy}
-    >
-      <div className="mt-4 flex flex-wrap gap-3">
-        {form.images.map((image) => (
-          <SortableImage
-            key={image.public_id}
-            image={image}
-            onRemove={removeImage}
-          />
-        ))}
-      </div>
-    </SortableContext>
-  </DndContext>
-</div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={form.images.map((i) => i.public_id)}
+              strategy={rectSortingStrategy}
+            >
+              <div className="mt-4 flex flex-wrap gap-3">
+                {form.images.map((image) => (
+                  <SortableImage
+                    key={image.public_id}
+                    image={image}
+                    onRemove={removeImage}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
 
-<div className="flex items-center justify-between">
-  <p className="text-sm font-semibold">Planimetrie</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">Planimetrie</p>
 
-  <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
-    {uploading ? "Caricamento…" : "Aggiungi"}
-    <input
-      type="file"
-      multiple
-      className="hidden"
-      accept="image/*"
-      onChange={(e) => onUploadPlanimetries(e.target.files)}
-    />
-  </label>
-</div>
+          <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+            {uploading ? "Caricamento…" : "Aggiungi"}
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              accept="image/*"
+              onChange={(e) => onUploadPlanimetries(e.target.files)}
+            />
+          </label>
+        </div>
 
-{/* PLANIMETRIE */}
-<div className="md:col-span-2">
-  <p className="text-sm font-semibold">Planimetrie</p>
+        {/* PLANIMETRIE */}
+        <div className="md:col-span-2">
+          <p className="text-sm font-semibold">Planimetrie</p>
 
-  <div className="mt-3 flex flex-wrap gap-3">
-    {(form.planimetries || []).map((image) => (
-      <div key={image.public_id} className="relative">
-        <img
-          src={image.url}
-          alt=""
-          className="h-24 w-32 rounded-xl object-cover"
-        />
+          <div className="mt-3 flex flex-wrap gap-3">
+            {(form.planimetries || []).map((image) => (
+              <div key={image.public_id} className="relative">
+                <img
+                  src={image.url}
+                  alt=""
+                  className="h-24 w-32 rounded-xl object-cover"
+                />
 
-        <button
-          type="button"
-          onClick={() => removePlanimetry(image)}
-          className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-  </div>
-</div>
+                <button
+                  type="button"
+                  onClick={() => removePlanimetry(image)}
+                  className="absolute right-1 top-1 bg-white/90 text-xs px-2 py-1 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="md:col-span-2">
           <button
@@ -553,50 +541,49 @@ function handleDragEnd(event) {
         </div>
       </form>
       {selectingLocation && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div className="w-full max-w-3xl rounded-2xl bg-white p-4">
-      
-      <p className="mb-3 text-sm">
-        Clicca sulla mappa per impostare la posizione
-      </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-3xl rounded-2xl bg-white p-4">
+            <p className="mb-3 text-sm">
+              Clicca sulla mappa per impostare la posizione
+            </p>
 
-      <MapContainer
-        center={[41.073, 14.332]}
-        zoom={13}
-        className="h-[400px] w-full rounded-xl"
-      >
-        <TileLayer
-          attribution="&copy; OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+            <MapContainer
+              center={[41.073, 14.332]}
+              zoom={13}
+              className="h-[400px] w-full rounded-xl"
+            >
+              <TileLayer
+                attribution="&copy; OpenStreetMap"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
 
-        <MapPicker
-          onSelect={(latlng) => {
-            setForm((prev) => ({
-              ...prev,
-              location: {
-                lat: latlng.lat,
-                lng: latlng.lng,
-              },
-            }));
-          }}
-        />
-      </MapContainer>
-      <button
-  onClick={() => setSelectingLocation(false)}
-  className="mt-4 mr-3 rounded bg-gray-900 px-4 py-2 text-sm text-white"
->
-  Conferma posizione
-</button>
-      <button
-        onClick={() => setSelectingLocation(false)}
-        className="mt-4 text-sm text-gray-500"
-      >
-        Annulla
-      </button>
-    </div>
-  </div>
-)}
+              <MapPicker
+                onSelect={(latlng) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    location: {
+                      lat: latlng.lat,
+                      lng: latlng.lng,
+                    },
+                  }));
+                }}
+              />
+            </MapContainer>
+            <button
+              onClick={() => setSelectingLocation(false)}
+              className="mt-4 mr-3 rounded bg-gray-900 px-4 py-2 text-sm text-white"
+            >
+              Conferma posizione
+            </button>
+            <button
+              onClick={() => setSelectingLocation(false)}
+              className="mt-4 text-sm text-gray-500"
+            >
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

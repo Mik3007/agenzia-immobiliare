@@ -190,18 +190,21 @@ export async function updateProperty(req, res, next) {
 
     let location = existing.location;
 
-    // 🔥 prendi valori aggiornati o fallback a quelli esistenti
-    const finalAddress = address || existing.address;
-    const finalCity = city || existing.city;
-    const finalCap = cap || existing.cap;
+    // 🔥 PRIORITÀ: posizione manuale da frontend
+    if (req.body.location?.lat && req.body.location?.lng) {
+      location = req.body.location;
+    } else {
+      const finalAddress = address || existing.address;
+      const finalCity = city || existing.city;
+      const finalCap = cap || existing.cap;
 
-const geo = await geocodeAddress(finalAddress, finalCity, finalCap);
+      const geo = await geocodeAddress(finalAddress, finalCity, finalCap);
 
-// 🔥 se trova → aggiorna
-if (geo) {
-  location = geo;
-}
-// 🔥 se NON trova → mantiene quella esistente
+      // 🔥 aggiorna solo se trova qualcosa
+      if (geo) {
+        location = geo;
+      }
+    }
 
     const updated = await Property.findByIdAndUpdate(
       req.params.id,
@@ -210,7 +213,7 @@ if (geo) {
         price: Math.round(Number(req.body.price)),
         location,
       },
-      { new: true }
+      { new: true },
     );
 
     res.json({ item: updated });
@@ -294,7 +297,7 @@ export async function uploadImages(req, res, next) {
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
-          }
+          },
         );
 
         streamifier.createReadStream(file.buffer).pipe(stream);
