@@ -56,10 +56,11 @@ export default function PropertiesMap({ properties = [] }) {
    * - Se ci sono immobili → usa il primo
    * - Altrimenti fallback su coordinate default
    */
-  const center =
-    properties.length && properties[0].location
-      ? [properties[0].location.lat, properties[0].location.lng]
-      : [41.083, 14.334]; // fallback (zona Campania)
+const firstWithLocation = properties.find((p) => p.location);
+
+const center = firstWithLocation
+  ? [firstWithLocation.location.lat, firstWithLocation.location.lng]
+  : [41.083, 14.334];
 
   return (
     <MapContainer
@@ -81,7 +82,12 @@ export default function PropertiesMap({ properties = [] }) {
       ========================= */}
       {properties.map((p) => {
         // se immobile non ha coordinate → skip
-        if (!p.location) return null;
+if (
+  !p.location ||
+  typeof p.location.lat !== "number" ||
+  typeof p.location.lng !== "number"
+)
+  return null;;
 
         return (
           <Marker
