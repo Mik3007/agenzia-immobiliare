@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
 import { isLoggedIn } from "../utils/auth";
+import { MapContainer, TileLayer, useMapEvents, Marker } from "react-leaflet";
 
 /**
  * =========================
@@ -69,6 +70,19 @@ function SortableImage({ image, onRemove }) {
   );
 }
 
+function MapPicker({ onSelect }) {
+  const [position, setPosition] = useState(null);
+
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+      onSelect(e.latlng);
+    },
+  });
+
+  return position ? <Marker position={position} /> : null;
+}
+
 /**
  * =========================
  * ADMIN PROPERTY EDIT
@@ -97,7 +111,7 @@ export default function AdminPropertyEdit() {
 
   // sensori drag
   const sensors = useSensors(useSensor(PointerSensor));
-
+  const [selectingLocation, setSelectingLocation] = useState(false);
   /**
    * =========================
    * LOAD IMMOBILE
@@ -338,6 +352,13 @@ function handleDragEnd(event) {
             onChange={(e) => setForm({ ...form, cap: e.target.value })}
             />
         </div>
+        <button
+  type="button"
+  onClick={() => setSelectingLocation(true)}
+  className="text-sm text-blue-600 underline"
+>
+  Imposta posizione su mappa
+</button>
 
         {/* Contratto */}
         <div>
@@ -531,6 +552,48 @@ function handleDragEnd(event) {
           </button>
         </div>
       </form>
+      {selectingLocation && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="w-full max-w-3xl rounded-2xl bg-white p-4">
+      
+      <p className="mb-3 text-sm">
+        Clicca sulla mappa per impostare la posizione
+      </p>
+
+      <MapContainer
+        center={[41.073, 14.332]}
+        zoom={13}
+        className="h-[400px] w-full rounded-xl"
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <MapPicker
+          onSelect={(latlng) => {
+            setForm((prev) => ({
+              ...prev,
+              location: {
+                lat: latlng.lat,
+                lng: latlng.lng,
+              },
+            }));
+
+            setSelectingLocation(false);
+          }}
+        />
+      </MapContainer>
+
+      <button
+        onClick={() => setSelectingLocation(false)}
+        className="mt-4 text-sm text-gray-500"
+      >
+        Annulla
+      </button>
+    </div>
+  </div>
+)}
     </main>
   );
 }
