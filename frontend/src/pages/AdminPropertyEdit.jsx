@@ -582,7 +582,12 @@ function handleDragEnd(event) {
           }}
         />
       </MapContainer>
-
+      <button
+  onClick={() => setSelectingLocation(false)}
+  className="mt-4 mr-3 rounded bg-gray-900 px-4 py-2 text-sm text-white"
+>
+  Conferma posizione
+</button>
       <button
         onClick={() => setSelectingLocation(false)}
         className="mt-4 text-sm text-gray-500"
