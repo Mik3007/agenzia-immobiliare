@@ -6,17 +6,19 @@ import streamifier from "streamifier";
  * =========================
  * UTIL: GEOLOCALIZZAZIONE
  * =========================
+ * Usa Nominatim (OpenStreetMap)
+ * con più fallback per evitare location null
  */
 async function geocodeAddress(address, city, cap) {
   const queries = [
-    `${address}, ${cap}, ${city}, Italia`,
-    `${address}, ${cap}, Italia`,      // 🔥 NUOVO
+    `${address}, ${cap}, ${city}, Italia`, // completo
+    `${address}, ${cap}, Italia`,          // 🔥 senza città
     `${address}, ${city}, Italia`,
-    `${cap}, Italia`,                  // 🔥 NUOVO (fondamentale)
+    `${cap}, Italia`,                      // 🔥 fallback forte (fondamentale)
   ];
 
   for (const q of queries) {
-    await delay(1000);
+    await delay(1000); // rispetto rate limit API
 
     const query = encodeURIComponent(q);
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
@@ -41,15 +43,18 @@ async function geocodeAddress(address, city, cap) {
     }
   }
 
+  // 🔴 fallback finale → evita immobili "invisibili" sulla mappa
   console.warn("❌ Geocoding fallito:", address, city, cap);
 
-  // 🔥 fallback (così NON perdi mai immobili in mappa)
   return {
-    lat: 41.074,
+    lat: 41.074, // zona Caserta fallback
     lng: 14.332,
   };
 }
 
+/**
+ * Delay per evitare blocchi API
+ */
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -142,13 +147,16 @@ export async function getPropertyById(req, res, next) {
 }
 
 /* ============================= */
+/* CREA IMMOBILE */
+/* ============================= */
 export async function createProperty(req, res, next) {
   try {
     const { address, city, cap } = req.body;
 
     let location = null;
 
-    if (address && city && cap) {
+    // 🔥 NON più rigido → basta anche uno dei campi
+    if (address || city || cap) {
       location = await geocodeAddress(address, city, cap);
     }
 
@@ -165,6 +173,8 @@ export async function createProperty(req, res, next) {
 }
 
 /* ============================= */
+/* UPDATE IMMOBILE */
+/* ============================= */
 export async function updateProperty(req, res, next) {
   try {
     const { address, city, cap } = req.body;
@@ -178,9 +188,14 @@ export async function updateProperty(req, res, next) {
 
     let location = existing.location;
 
-    if (address && city && cap) {
-      const geo = await geocodeAddress(address, city, cap);
-      if (geo) location = geo;
+    // 🔥 prendi valori aggiornati o fallback a quelli esistenti
+    const finalAddress = address || existing.address;
+    const finalCity = city || existing.city;
+    const finalCap = cap || existing.cap;
+
+    // 🔥 sempre geocoding se almeno uno esiste
+    if (finalAddress || finalCity || finalCap) {
+      location = await geocodeAddress(finalAddress, finalCity, finalCap);
     }
 
     const updated = await Property.findByIdAndUpdate(
@@ -200,6 +215,8 @@ export async function updateProperty(req, res, next) {
 }
 
 /* ============================= */
+/* DELETE IMMOBILE */
+/* ============================= */
 export async function deleteProperty(req, res, next) {
   try {
     const property = await Property.findById(req.params.id);
@@ -209,6 +226,7 @@ export async function deleteProperty(req, res, next) {
       throw new Error("Immobile non trovato");
     }
 
+    // elimina immagini
     if (property.images?.length) {
       for (const img of property.images) {
         if (img.public_id) {
@@ -217,6 +235,7 @@ export async function deleteProperty(req, res, next) {
       }
     }
 
+    // elimina planimetrie
     if (property.planimetries?.length) {
       for (const plan of property.planimetries) {
         if (plan.public_id) {
@@ -234,10 +253,15 @@ export async function deleteProperty(req, res, next) {
 }
 
 /* ============================= */
+/* ULTIMI IMMOBILI */
+/* ============================= */
 export const getLatest = async (req, res, next) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || "6", 10), 20);
+
+    // 🔥 puoi cambiarlo in createdAt se vuoi i più recenti
     const items = await Property.find({}).sort({ price: 1 }).limit(limit);
+
     res.json(items);
   } catch (err) {
     next(err);
@@ -285,6 +309,8 @@ export async function uploadImages(req, res, next) {
   }
 }
 
+/* ============================= */
+/* DELETE IMMAGINE */
 /* ============================= */
 export async function deleteImage(req, res, next) {
   try {
