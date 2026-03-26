@@ -579,8 +579,6 @@ function handleDragEnd(event) {
                 lng: latlng.lng,
               },
             }));
-
-            setSelectingLocation(false);
           }}
         />
       </MapContainer>
