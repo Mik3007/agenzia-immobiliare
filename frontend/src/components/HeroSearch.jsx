@@ -196,7 +196,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
           >
             Immobili selezionati, consulenza chiara,
             <br className="md:hidden" />
-            visite rapide e gestione completa 
+            visite rapide e gestione completa  
             <br className="md:hidden" />
             della trattativa.
           </p>
