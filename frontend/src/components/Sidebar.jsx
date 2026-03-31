@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen, onClose, items }) {
       ========================= */}
       <aside
         className={[
-          "fixed left-0 top-0 z-50 h-dvh w-[80vw] max-w-85",
+          "fixed left-0 top-0 z-999 h-dvh w-[80vw] max-w-85",
           "shadow-2xl transform transition-transform duration-300 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
