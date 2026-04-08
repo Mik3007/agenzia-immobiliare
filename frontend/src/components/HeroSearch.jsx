@@ -194,7 +194,7 @@ export default function HeroSearch({ onSearch, compact = false }) {
             className="mt-4 max-w-xs text-sm leading-relaxed md:mt-5 md:max-w-lg md:text-base md:leading-relaxed md:mb-2"
             style={{ color: "#99997b" }}
           >
-            Strategia-Velocità-Risultato.
+            Strategia-Velocità-Risultato.{" "}
             <br className="md:hidden" />
             Dall'idea alla realtà,{" "}  
             <br className="md:hidden" />
